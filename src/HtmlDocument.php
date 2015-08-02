@@ -10,38 +10,13 @@ namespace Kuria\Dom;
 class HtmlDocument extends DomContainer
 {
     /** @var bool */
-    protected $autoUtf8Enabled = true;
-    /** @var bool */
     protected $tidyEnabled = false;
     /** @var array */
     protected $tidyConfig = array();
+    /** @var bool */
+    protected $handleEncoding = true;
 
     /**
-     * See if automatic UTF-8 conversion is enabled
-     *
-     * @return bool
-     */
-    public function isAutoUtf8Enabled()
-    {
-        return $this->autoUtf8Enabled;
-    }
-
-    /**
-     * Toggle automatic UTF-8 conversion
-     *
-     * @param bool $autoUtf8Enabled
-     * @return static
-     */
-    public function setAutoUtf8Enabled($autoUtf8Enabled)
-    {
-        $this->autoUtf8Enabled = $autoUtf8Enabled;
-
-        return $this;
-    }
-
-    /**
-     * See if tidy is enabled
-     *
      * @return bool
      */
     public function isTidyEnabled()
@@ -50,7 +25,9 @@ class HtmlDocument extends DomContainer
     }
 
     /**
-     * Toggle tidy
+     * Toggle automatic tidy usage
+     *
+     * {@see setTidyConfig()} to configure the process
      *
      * @param bool $tidyEnabled
      * @return static
@@ -63,7 +40,7 @@ class HtmlDocument extends DomContainer
     }
 
     /**
-     * Get tidy config
+     * Get tidy configuration
      *
      * @return array
      */
@@ -73,190 +50,202 @@ class HtmlDocument extends DomContainer
     }
 
     /**
-     * Set tidy config
+     * Add or set tidy configuration
      *
      * @param array $tidyConfig
+     * @param bool  $merge
      * @return static
      */
-    public function setTidyConfig(array $tidyConfig)
+    public function setTidyConfig(array $tidyConfig, $merge = true)
     {
-        $this->tidyConfig = $tidyConfig;
+        if ($merge) {
+            $this->tidyConfig = $tidyConfig + $this->tidyConfig;
+        } else {
+            $this->tidyConfig = $tidyConfig;
+        }
 
         return $this;
     }
 
-    protected function initialize($content)
+    /**
+     * See whether automatic encoding handling is enabled
+     *
+     * @return bool
+     */
+    public function getHandleEncoding()
     {
-        // auto-convert to UTF-8
-        if ($this->autoUtf8Enabled) {
-            $content = $this->convertDocumentToUtf8($content);
-        }
-
-        // add xml header
-        if (!preg_match('/^\s*<\?xml/i', $content)) {
-            $content = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" . $content;
-        }
-
-        // tidy
-        if ($this->tidyEnabled && function_exists('tidy_repair_string')) {
-            $content = tidy_repair_string($content, $this->tidyConfig, 'utf8');
-        }
-
-        // load
-        // @codeCoverageIgnoreStart
-        if (version_compare(PHP_VERSION, '5.4.0', '>=')) {
-            if ($this->ignoreErrors) {
-                @$this->document->loadHTML($content, $this->libxmlFlags);
-            } else {
-                $this->document->loadHTML($content, $this->libxmlFlags);
-            }
-        } else {
-            if ($this->ignoreErrors) {
-                @$this->document->loadHTML($content);
-            } else {
-                $this->document->loadHTML($content);
-            }
-        }
-        // @codeCoverageIgnoreEnd
-
-        // remove XML header
-        foreach ($this->document->childNodes as $childNode) {
-            if ($childNode->nodeType == XML_PI_NODE) {
-                $this->document->removeChild($childNode);
-                break;
-            }
-        }
-        $this->document->encoding = 'UTF-8';
+        return $this->handleEncoding;
     }
 
     /**
-     * Convert the given HTML document to UTF-8
+     * Set whether the encoding meta tag should be automatically updated
+     * or inserted to ensure the DOM extension handles the encoding correctly.
      *
-     * @param string $html
-     * @return string
+     * Has no effect on already loaded document.
+     *
+     * @param bool $handleEncoding
+     * @return static
      */
-    protected function convertDocumentToUtf8($html)
+    public function setHandleEncoding($handleEncoding)
     {
-        $specifiedEncoding = null;
+        $this->handleEncoding = $handleEncoding;
 
-        // attempt to find <head> and </head> tags
-        if (
-            false !== ($headTagPos = stripos($html, '<head>'))
-            && false !== ($headTagEndPos = stripos($html, '</head>', $headTagPos + 6))
-        ) {
-            // process meta tags in the head
-            list($head, $toInsert, $specifiedEncoding) = $this->processMetaTags(
-                substr($html, $headTagPos + 6, $headTagEndPos - $headTagPos - 6)
-            );
+        return $this;
+    }
 
-            // rebuild document
-            $html = substr($html, 0, $headTagPos + 6)
-                . $toInsert
-                . $head
-                . substr($html, $headTagEndPos)
-            ;
-        } else {
-            // no head tag found, process the entire document :(
-            list($html, $toInsert, $specifiedEncoding) = $this->processMetaTags($html);
+    public function setEncoding($newEncoding)
+    {
+        parent::setEncoding($newEncoding);
 
-            // insert extra html if any
-            if ('' !== $toInsert) {
-                // attempt to insert it after the <html> tag
-                $replacement = '$1' . $toInsert;
-                $html = preg_replace('~(<html[^>]*?>)~i', $replacement, $html, 1, $count);
-                if (0 === $count) {
-                    // no <html> tag found, attempt to insert right after the doctype
-                    $html = preg_replace('~(<!doctype[^>]*?>)~i', $replacement, $html, 1, $count);
-                    if (0 === $count) {
-                        // no doctype found, just insert it at the beginning of the document then
-                        $html = $toInsert . $html;
-                    }
+        // update or insert the appropriate meta tag manually
+        // (as setting DOMDocument->encoding alone is not enough for HTML documents)
+        $contentTypeMetaFound = false;
+
+        foreach ($this->query('/html/head/meta') as $meta) {
+            $httpEquivAttr = null;
+            $contentAttr = null;
+
+            foreach ($meta->attributes as $attr) {
+                if (
+                    null === $httpEquivAttr
+                    && 0 === strcasecmp('http-equiv', $attr->nodeName)
+                    && 0 === strcasecmp('Content-Type', $attr->nodeValue)
+                ) {
+                    $httpEquivAttr = $attr;
+                } elseif (
+                    null === $contentAttr
+                    && 0 === strcasecmp('content', $attr->nodeName)
+                ) {
+                    $contentAttr = $attr;
+                } elseif (0 === strcasecmp('charset', $attr->nodeName)) {
+                    // remove the <meta charset="..."> tag
+                    // (the DOM extension does not support it)
+                    $this->remove($meta);
+                    break 2;
+                }
+
+                if (isset($httpEquivAttr, $contentAttr)) {
+                    $contentTypeMetaFound = true;
+                    break 2;
                 }
             }
         }
 
-        // convert to UTF-8
-        return $this->toUtf8($html, $specifiedEncoding);
+        $newContentType = "text/html; charset={$newEncoding}";
+
+        if ($contentTypeMetaFound) {
+            $contentAttr->nodeValue = $newContentType;
+        } else {
+            $meta = $this->document->createElement('meta');
+            $meta->setAttribute('http-equiv', 'Content-Type');
+            $meta->setAttribute('content', $newContentType);
+            $this->prependChild($meta, $this->document->getElementsByTagName('head')->item(0));
+        }
+
+        return $this;
+    }
+
+    public function escape($string)
+    {
+        return htmlspecialchars(
+            $string,
+            PHP_VERSION_ID >= 50400
+                ? ENT_QUOTES | ENT_HTML5
+                : ENT_QUOTES,
+            static::INTERNAL_ENCODING
+        );
+    }
+
+    protected function populate($content, $encoding = null)
+    {
+        // handle document encoding
+        if ($this->handleEncoding) {
+            $this->handleEncoding($content, $encoding);
+        }
+
+        // tidy
+        if ($this->tidyEnabled && function_exists('tidy_repair_string')) {
+            $content = tidy_repair_string($content, $this->tidyConfig, 'raw');
+        }
+
+        // load
+        if (PHP_VERSION_ID >= 50400) {
+            $this->document->loadHTML($content, $this->libxmlFlags);
+        } else {
+            $this->document->loadHTML($content); // @codeCoverageIgnore
+        }
+    }
+
+    public function save(\DOMNode $contextNode = null, $childrenOnly = false)
+    {
+        $document = $this->getDocument();
+
+        if (null === $contextNode) {
+            $content = $document->saveHTML();
+        } else {
+            // saveHTML($node) is supported since PHP 5.3.6
+            $useSaveHtmlArgument = PHP_VERSION_ID >= 50306;
+
+            if ($childrenOnly) {
+                $content = '';
+                foreach ($contextNode->childNodes as $node) {
+                    $content .= $useSaveHtmlArgument
+                        ? $document->saveHTML($node)
+                        : $document->saveXML($node)
+                    ;
+                }
+            } else {
+                $content = $useSaveHtmlArgument
+                    ? $document->saveHTML($contextNode)
+                    : $document->saveXML($contextNode)
+                ;
+            }
+        }
+
+        return $content;
     }
 
     /**
-     * Process meta tags in the given fragment of HTML code
+     * Make sure the passed HTML document string contains an encoding
+     * specification that is supported by the DOM extension.
      *
-     * @param string $html
-     * @return array processed html, html_to_insert, specified_encoding
+     * @param string      &$htmlDocument the HTML document string to be modified
+     * @param string|null $knownEncoding encoding, if already known
      */
-    protected function processMetaTags($html)
+    public static function handleEncoding(&$htmlDocument, $knownEncoding = null)
     {
-        $toInsert = '';
-        $specifiedEncoding = null;
-        $metaCharsetTag = '<meta charset="UTF-8">';
-        $metaHttpEquivTag = '<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">';
+        $document = new SimpleHtmlParser($htmlDocument);
 
-        // find and process the meta charset tag
-        $html = preg_replace_callback('~<meta.*?charset=(["\'])(.*?)\\1.*?>~', function (array $match) use (&$specifiedEncoding, $metaCharsetTag) {
-            $specifiedEncoding = $match[2];
+        $encodingTag = $document->getEncodingTag();
+        $specifiedEncoding = $document->getEncoding();
+        $usedEncoding = $knownEncoding ?: $specifiedEncoding;
 
-            return $metaCharsetTag;
-        }, $html, 1, $count);
-
-        // add meta charset tag if not present
-        if (0 === $count) {
-            $toInsert .= $metaCharsetTag;
-        }
-
-        // find and process the http-equiv meta tag
-        $html = preg_replace_callback('~<meta(.*?)http-equiv=(["\'])Content-Type\\2(.*?)>~i', function (array $match) use (&$specifiedEncoding, $metaHttpEquivTag) {
-            if (
-                null === $specifiedEncoding
-                && preg_match('~content=(["\']).+?;\s*charset=(.*?)\\1~i', $match[1] . $match[3], $content)
-            ) {
-                $specifiedEncoding = $content[2];
+        if (
+            null === $encodingTag // no tag, need to insert
+            || isset($encodingTag['attrs']['charset']) // the DOM extension does not support <meta charset="...">
+            || null !== $knownEncoding && 0 !== strcasecmp($specifiedEncoding, $knownEncoding) // the encodings are different
+        ) {
+            $replacement = "<meta http-equiv=\"Content-Type\" content=\"text/html; charset={$document->escape($usedEncoding)}\">";
+            
+            if (null === $encodingTag) {
+                $insertAfter = $document->find(SimpleHtmlParser::OPENING_TAG, 'head', 1024) ?: $document->getDoctypeElement();
             }
 
-            return $metaHttpEquivTag;
-        }, $html, 1, $count);
+            $document = null;
 
-        // add meta http-equiv tag if not present
-        if (0 === $count) {
-            $toInsert .= $metaHttpEquivTag;
-        }
-
-        return array($html, $toInsert, $specifiedEncoding);
-    }
-
-    /**
-     * Convert the given HTML string to UTF-8
-     *
-     * @param string      $html
-     * @param string|null $currentEncoding
-     * @return string
-     */
-    protected function toUtf8($html, $currentEncoding)
-    {
-        if (null === $currentEncoding) {
-            // detect encoding
-            $currentEncoding = mb_detect_encoding($html, null, true);
-
-            // abort if encoding could not be detected for some reason (failsafe)
-            // @codeCoverageIgnoreStart
-            if (false === $currentEncoding) {
-                return $html;
+            if (null !== $encodingTag) {
+                // replace the existing tag
+                $htmlDocument = substr_replace($htmlDocument, $replacement, $encodingTag['start'], $encodingTag['end'] - $encodingTag['start']);
+            } else {
+                // insert new tag
+                if (null !== $insertAfter) {
+                    // after <head> or the doctype
+                    $htmlDocument = substr_replace($htmlDocument, $replacement, $insertAfter['end'], 0);
+                } else {
+                    // at the beginning (since there is no head tag nor doctype
+                    $htmlDocument = "{$replacement}\n{$htmlDocument}";
+                }
             }
-            // @codeCoverageIgnoreEnd
-        } else {
-            // normalise case
-            $currentEncoding = strtoupper($currentEncoding);
         }
-
-        if ('ASCII' !== $currentEncoding && 'UTF-8' !== $currentEncoding) {
-            return mb_convert_encoding($html, 'UTF-8', $currentEncoding);
-        } else {
-            return $html;
-        }
-    }
-
-    public function getContent()
-    {
-        return $this->getDocument()->saveHTML();
     }
 }

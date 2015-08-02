@@ -9,33 +9,32 @@ namespace Kuria\Dom;
  */
 abstract class DomContainer
 {
+    /** http://php.net/manual/en/intro.dom.php */
+    const INTERNAL_ENCODING = 'UTF-8';
+
     /** @var \DOMDocument|null */
     protected $document;
     /** @var \DOMXPath|null */
     protected $xpath;
-    /** @var bool */
-    protected $preserveWhitespace = true;
     /** @var bool */
     protected $ignoreErrors = false;
     /** @var int */
     protected $libxmlFlags = 0;
 
     /**
-     * Convert to string
-     *
      * @return string
      */
     public function __toString()
     {
         if ($this->document) {
-            return (string) $this->getContent();
+            return (string) $this->save();
         } else {
             return '';
         }
     }
 
     /**
-     * Clear document and xpath instances
+     * Clear the document and xpath instances
      *
      * @return static
      */
@@ -46,7 +45,17 @@ abstract class DomContainer
     }
 
     /**
-     * Get ignore errors
+     * See if the container is initialized
+     *
+     * @return bool
+     */
+    public function isLoaded()
+    {
+        return null !== $this->document;
+    }
+
+    /**
+     * See if load errors are ignored
      *
      * @return bool
      */
@@ -56,7 +65,7 @@ abstract class DomContainer
     }
 
     /**
-     * Set ignore errors
+     * Set whether load errors should be ignored
      *
      * @param bool $ignoreErrors
      * @return static
@@ -69,30 +78,7 @@ abstract class DomContainer
     }
 
     /**
-     * Get preserve whitespace
-     *
-     * @return bool
-     */
-    public function getPreserveWhitespace()
-    {
-        return $this->preserveWhitespace;
-    }
-
-    /**
-     * Set preserve whitespace
-     *
-     * @param bool $preserveWhitespace
-     * @return static
-     */
-    public function setPreserveWhitespace($preserveWhitespace)
-    {
-        $this->preserveWhitespace = $preserveWhitespace;
-
-        return $this;
-    }
-
-    /**
-     * Get libxml flags
+     * Get configured libxml flags
      *
      * @return int
      */
@@ -102,36 +88,39 @@ abstract class DomContainer
     }
 
     /**
-     * Set libxml flags
+     * Set one or more libxml flags
      *
-     * @param int $libxmlFlags
+     * The flags are added to the previously set flags unless $add is FALSE.
+     *
+     * @param int  $libxmlFlags
+     * @param bool $add
      * @return static
      */
-    public function setLibxmlFlags($libxmlFlags)
+    public function setLibxmlFlags($libxmlFlags, $add = true)
     {
-        $this->libxmlFlags = $libxmlFlags;
+        if ($add) {
+            $this->libxmlFlags |= $libxmlFlags;
+        } else {
+            $this->libxmlFlags = $libxmlFlags;
+        }
 
         return $this;
     }
 
     /**
-     * Get document
-     *
-     * @throws \RuntimeException if the document is not yet initialized
+     * @throws \RuntimeException if the document has not been initialized yet
      * @return \DOMDocument
      */
     public function getDocument()
     {
         if (null === $this->document) {
-            throw new \RuntimeException('Document is not yet initialized');
+            throw new \RuntimeException('Document has not been initialized yet');
         }
 
         return $this->document;
     }
 
     /**
-     * Get xpath
-     *
      * @return \DOMXPath
      */
     public function getXpath()
@@ -144,8 +133,6 @@ abstract class DomContainer
     }
 
     /**
-     * Create XPath instance
-     *
      * @return \DOMXPath
      */
     protected function createXpath()
@@ -154,37 +141,121 @@ abstract class DomContainer
     }
 
     /**
-     * Load content
+     * Load document from a string
      *
-     * @param string $content the content
+     * The specified encoding may or may not be used, depending on the
+     * container's implementation.
+     *
+     * @param string      $content    the content
+     * @param string|null $encoding   encoding of the content, if known
+     * @param array|null  $properties optional map of DOMDocument properties to set before loading
      * @return static
      */
-    public function load($content)
+    public function loadString($content, $encoding = null, array $properties = null)
     {
         $this->clear();
+        
+        $originalUseInternalErrors = libxml_use_internal_errors($this->ignoreErrors);
 
-        $this->document = new \DOMDocument();
-        $this->document->preserveWhiteSpace = $this->preserveWhitespace;
-        $this->document->strictErrorChecking = !$this->ignoreErrors;
+        $e = null;
+        try {
+            $this->document = new \DOMDocument();
 
-        $this->initialize($content);
+            if (null !== $properties) {
+                foreach ($properties as $property => $value) {
+                    $this->document->{$property} = $value;
+                }
+            }
+
+            $this->populate($content, $encoding);
+        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
+        }
+
+        if ($originalUseInternalErrors !== $this->ignoreErrors) {
+            // restore original config
+            libxml_use_internal_errors($originalUseInternalErrors);
+        }
+
+        if (null !== $e) {
+            $this->clear();
+
+            throw $e;
+        }
 
         return $this;
     }
 
     /**
-     * Populate document with given content
+     * Populate the document with the given content
      *
-     * @param string $content
+     * @param string      $content
+     * @param string|null $encoding
      */
-    abstract protected function initialize($content);
+    abstract protected function populate($content, $encoding = null);
+
+    /**
+     * Use an existing DOMDocument instance
+     *
+     * @param \DOMDocument   $document document instance
+     * @param \DOMXPath|null $xpath    xpath instance, if already created
+     * @return static
+     */
+    public function loadDocument(\DOMDocument $document, \DOMXPath $xpath = null)
+    {
+        $this->clear();
+
+        $this->document = $document;
+        $this->xpath = $xpath;
+
+        return $this;
+    }
 
     /**
      * Get content as a string
      *
+     * @param \DOMNode|null $contextNode  output only a subset of the document
+     * @param bool          $childrenOnly output only children of the context node
      * @return string
      */
-    abstract public function getContent();
+    abstract public function save(\DOMNode $contextNode = null, $childrenOnly = false);
+
+    /**
+     * Escape the given string
+     *
+     * @param string $string
+     * @return string
+     */
+    abstract public function escape($string);
+
+    /**
+     * Get document encoding
+     *
+     *  - this encoding is used during save()
+     *  - the internal encoding is always UTF-8
+     *
+     * @return string
+     */
+    public function getEncoding()
+    {
+        return $this->getDocument()->encoding;
+    }
+
+    /**
+     * Change document encoding
+     *
+     *  - this encoding is used during save()
+     *  - has no effect on the internal encoding (which is always UTF-8)
+     *
+     * @param string $newEncoding
+     * @return static
+     */
+    public function setEncoding($newEncoding)
+    {
+        $this->getDocument()->encoding = $newEncoding;
+
+        return $this;
+    }
 
     /**
      * Perform a XPath query
@@ -203,7 +274,7 @@ abstract class DomContainer
             // make sure an exception is thrown on failure
             // @codeCoverageIgnoreStart
             if (false === $result) {
-                throw new \RuntimeException('XPath query error - invalid expression or context node');
+                throw new \RuntimeException('Invalid expression or context node');
             }
             // @codeCoverageIgnoreEnd
         } catch (\Exception $e) {
@@ -228,5 +299,74 @@ abstract class DomContainer
         if ($nodes->length > 0) {
             return $nodes->item(0);
         }
+    }
+
+    /**
+     * See if a node is descendant of another node
+     *
+     * If no parent node is given, the document is used in its place.
+     *
+     * @param \DOMNode      $node
+     * @param \DOMNode|null $parentNode
+     * @return bool
+     */
+    public function contains(\DOMNode $node, \DOMNode $parentNode = null)
+    {
+        if (null === $parentNode) {
+            $parentNode = $this->getDocument();
+        }
+
+        while (null !== $node->parentNode) {
+            $node = $node->parentNode;
+
+            if ($parentNode === $node) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Remove a node
+     *
+     * @param \DOMNode $existingNode
+     * @throws \DOMException if the existing node has no parent
+     * @return \DOMNode the removed node
+     */
+    public function remove(\DOMNode $existingNode)
+    {
+        if (!$existingNode->parentNode) {
+            throw new \DOMException('Cannot remove a node that has no parent');
+        }
+
+        return $existingNode->parentNode->removeChild($existingNode);
+    }
+
+    /**
+     * Prepend a node to the given existing node
+     *
+     * @param \DOMNode $newNode
+     * @param \DOMNode $existingNode
+     * @return \DOMNode the inserted node
+     */
+    public function prependChild(\DOMNode $newNode, \DOMNode $existingNode)
+    {
+        return $existingNode->firstChild
+            ? $existingNode->insertBefore($newNode, $existingNode->firstChild)
+            : $existingNode->appendChild($newNode)
+        ;
+    }
+
+    /**
+     * Insert a node after the given existing node
+     *
+     * @param \DOMNode $newNode
+     * @param \DOMNode $existingNode
+     * @return \DOMNode the inserted node
+     */
+    public function insertAfter(\DOMNode $newNode, \DOMNode $existingNode)
+    {
+        return $existingNode->parentNode->insertBefore($newNode, $existingNode->nextSibling);
     }
 }

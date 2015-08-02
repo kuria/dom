@@ -6,15 +6,15 @@ Wrappers around the [PHP DOM classes](http://php.net/manual/en/book.dom.php).
 
 ## Features
 
-- HTML documents
-    - full documents
-    - partial content (fragments)
-    - automatic UTF-8 conversion
-    - integrated Tidy support (repairing poorly coded HTML documents)
-- XML documents
-    - full documents
-    - partial content (fragments)
+- works around the common DOM extension pitfalls
+    - suppressing errors
+    - handling the encoding of HTML documents
+- HTML documents and fragments
+    - encoding sniffing
+    - tidy support
+- XML documents and fragments
 - XPath queries
+- several helper methods
 
 
 ## Requirements

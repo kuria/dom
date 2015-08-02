@@ -9,28 +9,39 @@ namespace Kuria\Dom;
  */
 class XmlFragment extends XmlDocument
 {
-    protected function initialize($content)
+    protected function populate($content, $encoding = null)
     {
-        parent::initialize("<?xml version=\"1.0\" encoding=\"UTF-8\"?><root>{$content}</root>");
-    }
-
-    public function getContent()
-    {
-        $content = '';
-        $document = $this->getDocument();
-
-        foreach ($this->getXpath()->query('/root')->item(0)->childNodes as $item) {
-            $content .= $document->saveXML($item);
+        if (!$encoding) {
+            $encoding = static::INTERNAL_ENCODING;
         }
 
-        return $content;
+        parent::populate(
+            <<<XML
+<?xml version="1.0" encoding="{$this->escape($encoding)}"?>
+<root>
+{$content}
+</root>
+XML
+            ,
+            $encoding
+        );
+    }
+
+    public function save(\DOMNode $contextNode = null, $childrenOnly = false)
+    {
+        if (null === $contextNode) {
+            $contextNode = $this->getXpath()->query('/root')->item(0);
+            $childrenOnly = true;
+        }
+
+        return parent::save($contextNode, $childrenOnly);
     }
 
     public function query($expression, \DOMNode $contextNode = null, $registerNodeNs = true)
     {
         // if no context node has been given, assume <root>
         if (null === $contextNode) {
-            $contextNode = $this->getDocument()->getElementsByTagName('root')->item(0);
+            $contextNode = $this->getXpath()->query('/root')->item(0);
 
             // make sure the query is relative to the context node
             if ($contextNode && '' !== $expression && '.' !== $expression[0]) {

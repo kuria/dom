@@ -4,166 +4,317 @@ namespace Kuria\Dom;
 
 class HtmlDocumentTest extends DomContainerTest
 {
-    protected function createTestInstance()
-    {
-        return new HtmlDocument();
-    }
-
-    protected function getTestSample()
-    {
-        return '<!doctype html>
-<html>
-<head>
-    <title>Lorem ipsum</title>
-</head>
-<body>
-    <h1>Lorem ipsum</h1>
-    <p>Lorem ipsum dolor sit amet</p>
-</body>
-</html>';
-    }
-
-    protected function getBrokenSample()
-    {
-        return '<!doctype html><div';
-    }
-
-    protected function getBrokenSampleExpression()
-    {
-        return '//div';
-    }
-
-    protected function getTestSampleExpression()
-    {
-        return '//h1';
-    }
-
-    protected function getTestSampleExpressionNonMatching()
-    {
-        return '//div';
-    }
-
-    public function testAutoUtf8Config()
-    {
-        $dom = new HtmlDocument();
-
-        $this->assertTrue($dom->isAutoUtf8Enabled()); // default should be true
-
-        $this->assertFalse($dom->setAutoUtf8Enabled(false)->isAutoUtf8Enabled());
-        $this->assertTrue($dom->setAutoUtf8Enabled(true)->isAutoUtf8Enabled());
-    }
-
-    public function provideAutoUtf8MetaInsertionSamples()
+    protected function initializeOptions()
     {
         return array(
-            // nice document with full structure
-            array('<!doctype html>
-<html>
-<head>
-    <title>Lorem ipsum</title>
-</head>
-<body>
-    <h1>Hello</h1>
-</body>
-</html>'),
-
-            // missing <head> tag
-            array('<!doctype html>
-<html>
-<body>
-    <h1>Hello</h1>
-</body>
-</html>'),
-
-            // missing <html> tag
-            array('<!doctype html>
-<body>
-    <h1>Hello</h1>
-</body>'),
-
-            // missing doctype
-            array('<body><h1>Hello</h1></body>'),
+            'encoded_string_element_query' => '//h1',
+            'context_node_query' => '//ul[@id="bar"]',
+            'query' => '/html/body/ul/li',
+            'query.expected_results' => 5,
+            'context_query' => './li',
+            'context_query.expected_results' => 3,
+            'remove_query' => '//h1',
+            'prepend_child_target_query' => '//body',
+            'insert_after_target_query' => '//ul[@id="foo"]',
         );
     }
 
-    /**
-     * @dataProvider provideAutoUtf8MetaInsertionSamples
-     */
-    public function testAutoUtf8MetaInsertion($sample)
+    public function testConfiguration()
     {
-        $dom = new HtmlDocument();
+        $dom = parent::testConfiguration();
 
-        $dom->load($sample);
+        $this->assertTrue($dom->getHandleEncoding());
+        $this->assertFalse($dom->isTidyEnabled());
+        $this->assertEmpty($dom->getTidyConfig());
 
-        $this->assertNotNull($dom->queryOne('/html/head/meta[@charset = "UTF-8"]'));
-        $this->assertNotNull($dom->queryOne('/html/head/meta[@http-equiv and @content = "text/html; charset=UTF-8"]'));
+        return $dom;
     }
 
-    public function testAutoUtf8ConversionUsingMetaCharset()
+    public function testEscape()
     {
-        $dom = new HtmlDocument();
+        $dom = $this->createContainer();
 
-        $testStringUtf8 = 'foo-áž-bar';
-        $testStringIso = mb_convert_encoding($testStringUtf8, 'ISO-8859-15', 'UTF-8');
+        $this->assertSame(
+            '&lt;a href=&quot;http://example.com/?foo=bar&amp;amp;lorem=ipsum&quot;&gt;Test&lt;/a&gt;',
+            $dom->escape('<a href="http://example.com/?foo=bar&amp;lorem=ipsum">Test</a>')
+        );
+    }
+    
+    public function testSetEncodingUpdatesExistingMetaHttpEquiv()
+    {
+        $dom = $this->getContainer($this->getOption('custom_encoding'));
+        
+        $httpEquivMeta= $dom->queryOne('/html/head/meta[@http-equiv="Content-Type"]');
 
-        $dom->load('<!doctype html>
-<html>
-<head>
-    <meta charset="iso-8859-15">
-    <!-- the next meta tag is intentionally wrong to test that meta charset has precedence -->
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-    <title>Lorem ipsum</title>
-</head>
-<body>
-    <h1>' . $testStringIso . '</h1>
-</body>');
+        $this->assertNotNull($httpEquivMeta);
+        $this->assertContains('charset=' . $this->getOption('custom_encoding'), $httpEquivMeta->attributes->getNamedItem('content')->nodeValue);
+        
+        $dom->setEncoding(DomContainer::INTERNAL_ENCODING);
 
-        $this->assertSame($testStringUtf8, $dom->queryOne('//h1')->textContent);
+        $this->assertContains('charset=' . DomContainer::INTERNAL_ENCODING, $httpEquivMeta->attributes->getNamedItem('content')->nodeValue);
+    }
+    
+    public function testSetEncodingCreatesNewMetaHttpEquiv()
+    {
+        $dom = $this->createContainer();
+        $dom->setHandleEncoding(false);
+        $dom->loadString(<<<HTML
+<!doctype html>
+<title>Hello</title>
+<h1>Test</h1>
+HTML
+        );
+
+        $this->assertNull($dom->queryOne('/html/head/meta[@http-equiv="Content-Type"]'));
+
+        $dom->setEncoding(DomContainer::INTERNAL_ENCODING);
+
+        $httpEquivMeta= $dom->queryOne('/html/head/meta[@http-equiv="Content-Type"]');
+        $this->assertNotNull($httpEquivMeta);
+        $this->assertContains('charset=' . DomContainer::INTERNAL_ENCODING, $httpEquivMeta->attributes->getNamedItem('content')->nodeValue);
     }
 
-    public function testAutoUtf8ConversionUsingMetaHttpEquiv()
+    public function testSetEncodingRemovesMetaCharset()
     {
-        $dom = new HtmlDocument();
+        $dom = $this->createContainer();
+        $dom->setHandleEncoding(false);
+        $dom->loadString(<<<HTML
+<!doctype html>
+<meta charset="UTF-8">
+<title>Hello</title>
+<h1>Test</h1>
+HTML
+        );
 
-        $testStringUtf8 = 'foo-áž-bar';
-        $testStringIso = mb_convert_encoding($testStringUtf8, 'ISO-8859-15', 'UTF-8');
+        $this->assertNotNull($dom->queryOne('/html/head/meta[@charset]'));
+        $this->assertNull($dom->queryOne('/html/head/meta[@http-equiv="Content-Type"]'));
 
-        $dom->load('<!doctype html>
-<html>
-<head>
-    <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-15">
-    <title>Lorem ipsum</title>
-</head>
-<body>
-    <h1>' . $testStringIso . '</h1>
-</body>');
+        $dom->setEncoding(DomContainer::INTERNAL_ENCODING);
 
-        $this->assertSame($testStringUtf8, $dom->queryOne('//h1')->textContent);
+        $this->assertNull($dom->queryOne('/html/head/meta[@charset]'));
+        $this->assertNotNull($dom->queryOne('/html/head/meta[@http-equiv="Content-Type"]'));
     }
-
-    public function testTidyConfiguration()
-    {
-        $dom = new HtmlDocument();
-
-        $this->assertFalse($dom->isTidyEnabled()); // default should be false
-
-        $this->assertTrue($dom->setTidyEnabled(true)->isTidyEnabled());
-        $this->assertFalse($dom->setTidyEnabled(false)->isTidyEnabled());
-
-        $this->assertSame(array(), $dom->getTidyConfig()); // default should be empty
-        $this->assertSame(array('foo' => 'bar'), $dom->setTidyConfig(array('foo' => 'bar'))->getTidyConfig());
-    }
-
+    
     /**
      * @requires extension tidy
      */
     public function testTidy()
     {
-        $dom = new HtmlDocument();
+        $dom = $this->createContainer();
 
+        $tidyConfig = array(
+            'doctype' => 'loose',
+            'drop-font-tags' => true,
+        );
+        
         $dom->setTidyEnabled(true);
 
-        // if tidy works, no errors should be generated by this line
-        $dom->load('<!doctype html><p class="test>Hi');
+        $dom->setTidyConfig($tidyConfig);
+        $this->assertSame($tidyConfig, $dom->getTidyConfig());
+        $dom->setTidyConfig(array('foo' => 'bar'));
+        $this->assertEquals($tidyConfig + array('foo' => 'bar'), $dom->getTidyConfig());
+        $dom->setTidyConfig($tidyConfig, false);
+        $this->assertSame($tidyConfig, $dom->getTidyConfig());
+        
+        $dom->loadString(<<<HTML
+<!doctype html>
+<center>
+    <p>Hello</p>
+</center>
+HTML
+        );
+       
+        $this->assertNull($dom->queryOne('//center'));
+        $this->assertNotNull($dom->queryOne('//p'));
+    }
+
+    public function testDisabledHandleEncoding()
+    {
+        $dom = $this->createContainer();
+
+        $dom->setHandleEncoding(false);
+
+        $dom->loadString(<<<HTML
+<!doctype html>
+<p>Hello</p>
+HTML
+        );
+
+        $this->assertNull($dom->queryOne('//meta'));
+    }
+
+    public function testHandleEncodingKeepsValidMetaHttpEquiv()
+    {
+        $html = <<<HTML
+<!doctype html>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-15">
+HTML;
+
+        HtmlDocument::handleEncoding($html);
+
+        $this->assertContains('<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-15">', $html, '', true);
+    }
+
+    public function testHandleEncodingReplacesMetaHttpEquivIfDifferentKnownEncoding()
+    {
+        $html = <<<HTML
+<!doctype html>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-15">
+HTML;
+
+        HtmlDocument::handleEncoding($html, 'UTF-8');
+
+        $this->assertContains('<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">', $html, '', true);
+    }
+
+    public function testHandleEncodingConvertsMetaCharsetToHttpEquiv()
+    {
+        $html = <<<HTML
+<!doctype html>
+<meta charset="UTF-8">
+HTML;
+
+        HtmlDocument::handleEncoding($html);
+
+        $this->assertContains('<meta http-equiv="Content-Type"', $html, '', true);
+        $this->assertNotContains('<meta charset=', $html, '', true);
+    }
+
+    public function testHandleEncodingCreatesMetaHttpEquivInHead()
+    {
+        $html = <<<HTML
+<!doctype html>
+<head>
+    <title>Hello</title>
+</head>
+HTML;
+
+        HtmlDocument::handleEncoding($html);
+
+        $headPosition = stripos($html, '<head>');
+        $metaHttpEquivPosition = stripos($html, '<meta http-equiv="Content-Type"');
+
+        $this->assertInternalType('integer', $headPosition);
+        $this->assertInternalType('integer', $metaHttpEquivPosition);
+        $this->assertGreaterThan($headPosition, $metaHttpEquivPosition);
+    }
+
+    public function testHandleEncodingCreatesMetaHttpEquivAfterDoctype()
+    {
+        $html = <<<HTML
+<!doctype html>
+<title>Hello</title>
+HTML;
+
+        HtmlDocument::handleEncoding($html);
+
+        $doctypePosition = stripos($html, '<!doctype html>');
+        $metaHttpEquivPosition = stripos($html, '<meta http-equiv="Content-Type"');
+
+        $this->assertInternalType('integer', $doctypePosition);
+        $this->assertInternalType('integer', $metaHttpEquivPosition);
+        $this->assertGreaterThan($doctypePosition, $metaHttpEquivPosition);
+    }
+
+    public function testHandleEncodingCreatesMetaHttpEquivAtStart()
+    {
+        $html = <<<HTML
+<title>Hello</title>
+HTML;
+
+        HtmlDocument::handleEncoding($html);
+
+        $titlePosition = stripos($html, '<title>');
+        $metaHttpEquivPosition = stripos($html, '<meta http-equiv="Content-Type"');
+
+        $this->assertInternalType('integer', $titlePosition);
+        $this->assertInternalType('integer', $metaHttpEquivPosition);
+        $this->assertLessThan($titlePosition, $metaHttpEquivPosition);
+    }
+
+    protected function assertValidOutput($output, $encoding = DomContainer::INTERNAL_ENCODING)
+    {
+        $this->assertContains('<!doctype', $output, '', true);
+        $this->assertContains('<html>', $output, '', true);
+        $this->assertContains('<head>', $output, '', true);
+        $this->assertRegExp(sprintf('~<meta http-equiv="Content-Type" content="text/html; charset=%s">~i', preg_quote($encoding, '~')), $output);
+        $this->assertContains('<body>', $output, '', true);
+        $this->assertContains('<h1>', $output, '', true);
+        $this->assertContains('<p>', $output, '', true);
+        $this->assertContains('<ul id="foo">', $output, '', true);
+        $this->assertContains('<ul id="bar">', $output, '', true);
+        $this->assertContains('<li>', $output, '', true);
+    }
+
+    protected function assertValidOutputWithContextNode($output, $encoding = DomContainer::INTERNAL_ENCODING)
+    {
+        $this->assertNotContains('<!doctype', $output, '', true);
+        $this->assertNotContains('<html>', $output, '', true);
+        $this->assertNotContains('<head>', $output, '', true);
+        $this->assertNotContains('<meta', $output, '', true);
+        $this->assertNotContains('<body>', $output, '', true);
+        $this->assertNotContains('<h1>', $output, '', true);
+        $this->assertNotContains('<p>', $output, '', true);
+        $this->assertNotContains('<ul id="foo">', $output, '', true);
+        $this->assertContains('<ul id="bar">', $output, '', true);
+        $this->assertContains('<li>', $output, '', true);
+    }
+
+    protected function assertValidOutputWithContextNodeChildrenOnly($output, $encoding = DomContainer::INTERNAL_ENCODING)
+    {
+        $this->assertNotContains('<!doctype', $output, '', true);
+        $this->assertNotContains('<html>', $output, '', true);
+        $this->assertNotContains('<head>', $output, '', true);
+        $this->assertNotContains('<meta', $output, '', true);
+        $this->assertNotContains('<body>', $output, '', true);
+        $this->assertNotContains('<h1>', $output, '', true);
+        $this->assertNotContains('<p>', $output, '', true);
+        $this->assertNotContains('<ul id="foo">', $output, '', true);
+        $this->assertNotContains('<ul id="bar">', $output, '', true);
+        $this->assertContains('<li>', $output, '', true);
+    }
+
+    protected function createContainer()
+    {
+        return new HtmlDocument();
+    }
+
+    protected function getSampleContent($encoding = DomContainer::INTERNAL_ENCODING)
+    {
+        return <<<HTML
+<!doctype html>
+<html>
+    <head>
+        <meta charset="{$encoding}">
+        <title>Sample content</title>
+    </head>
+    <body>
+        <h1>{$this->getEncodedTestString($encoding)}</h1>
+        <p>
+            Hello. This is the <strong>sample document</strong>!
+        </p>
+        <ul id="foo">
+            <li>Lorem ipsum</li>
+            <li>Dolor sit amet</li>
+        </ul>
+        <ul id="bar">
+            <li>Condimentum velit</li>
+            <li>Justo magnis</li>
+            <li>Phasellus orci</li>
+        </ul>
+    </body>
+</html>
+HTML;
+    }
+
+    protected function getInvalidSampleContent($encoding = DomContainer::INTERNAL_ENCODING)
+    {
+        return <<<HTML
+<!doctype html>
+<h1>{$this->getEncodedTestString($encoding)}</h1 <!-- the syntax error is here -->
+<p>
+    Hello. This is the <strong>sample document</strong>!
+</p>
+HTML;
     }
 }

@@ -9,17 +9,35 @@ namespace Kuria\Dom;
  */
 class XmlDocument extends DomContainer
 {
-    protected function initialize($content)
+    public function escape($string)
     {
-        if ($this->ignoreErrors) {
-            @$this->document->loadXML($content, $this->libxmlFlags);
-        } else {
-            $this->document->loadXML($content, $this->libxmlFlags);
-        }
+        return htmlspecialchars(
+            $string,
+            PHP_VERSION_ID >= 50400
+                ? ENT_QUOTES | ENT_XML1
+                : ENT_QUOTES,
+            static::INTERNAL_ENCODING
+        );
     }
 
-    public function getContent()
+    protected function populate($content, $encoding = null)
     {
-        return $this->getDocument()->saveXML();
+        $this->document->loadXML($content, $this->libxmlFlags);
+    }
+
+    public function save(\DOMNode $contextNode = null, $childrenOnly = false)
+    {
+        $document = $this->getDocument();
+
+        if (null === $contextNode || !$childrenOnly) {
+            $content = $document->saveXML($contextNode);
+        } else {
+            $content = '';
+            foreach ($contextNode->childNodes as $node) {
+                $content .= $document->saveXML($node);
+            }
+        }
+
+        return $content;
     }
 }

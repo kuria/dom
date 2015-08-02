@@ -9,25 +9,45 @@ namespace Kuria\Dom;
  */
 class HtmlFragment extends HtmlDocument
 {
-    protected function initialize($content)
-    {
-        parent::initialize("<!doctype html>
-<html>
-<head></head>
-<body>{$content}</body>
-</html>");
-    }
+    /**
+     * Encoding handling is disabled by default, since it is always specified
+     * the "correct" way. This saves some needless processing.
+     *
+     * @var bool
+     */
+    protected $handleEncoding = false;
 
-    public function getContent()
+    protected function populate($content, $encoding = null)
     {
-        $content = '';
-        $document = $this->getDocument();
-
-        foreach ($this->getXpath()->query('/html/body')->item(0)->childNodes as $item) {
-            $content .= $document->saveXML($item);
+        if (!$encoding) {
+            $encoding = static::INTERNAL_ENCODING;
         }
 
-        return $content;
+        parent::populate(
+            <<<HTML
+<!doctype html>
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset={$this->escape($encoding)}">
+    </head>
+    <body>
+        {$content}
+    </body>
+</html>
+HTML
+            ,
+            $encoding
+        );
+    }
+
+    public function save(\DOMNode $contextNode = null, $childrenOnly = false)
+    {
+        if (null === $contextNode) {
+            $contextNode = $this->getXpath()->query('/html/body')->item(0);
+            $childrenOnly = true;
+        }
+
+        return parent::save($contextNode, $childrenOnly);
     }
 
     public function query($expression, \DOMNode $contextNode = null, $registerNodeNs = true)
