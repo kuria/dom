@@ -74,7 +74,7 @@ class SimpleHtmlParser implements \Iterator
     /**
      * Get HTML
      *
-     * If no element is give, returns the entire document.
+     * If no element is given, returns the entire document.
      *
      * If an element is given, returns only a section of the document that
      * corresponds to the matched element.
@@ -91,7 +91,7 @@ class SimpleHtmlParser implements \Iterator
     }
 
     /**
-     * Get length the HTML
+     * Get length of the HTML
      *
      * @return string
      */
@@ -115,7 +115,7 @@ class SimpleHtmlParser implements \Iterator
     }
 
     /**
-     * Get encoding-specifying meta tag, if any
+     * Get the encoding-specifying meta tag, if any
      *
      * (META charset or META http-equiv="Content-Type")
      *
