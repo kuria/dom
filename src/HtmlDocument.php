@@ -209,7 +209,7 @@ class HtmlDocument extends DomContainer
      * Make sure the passed HTML document string contains an encoding
      * specification that is supported by the DOM extension.
      *
-     * @param string      &$htmlDocument the HTML document string to be modified
+     * @param string      $htmlDocument  the HTML document string to be modified
      * @param string|null $knownEncoding encoding, if already known
      */
     public static function handleEncoding(&$htmlDocument, $knownEncoding = null)

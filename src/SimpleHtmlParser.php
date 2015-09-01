@@ -253,7 +253,7 @@ class SimpleHtmlParser implements \Iterator
      */
     public function revertState()
     {
-        if (empty($this->stateStack)) {
+        if (!$this->stateStack) {
             throw new \LogicException('The state stack is empty');
         }
 
@@ -382,7 +382,7 @@ class SimpleHtmlParser implements \Iterator
                 $result = array(
                     'type' => $isClosingTag ? self::CLOSING_TAG : self::OPENING_TAG,
                     'start' => $match[0][1],
-                    'end' => $offset + (!empty($endMatch) ? strlen($endMatch[0]) : 0),
+                    'end' => $offset + ($endMatch ? strlen($endMatch[0]) : 0),
                     'name' => strtolower($match[2][0]),
                 );
 

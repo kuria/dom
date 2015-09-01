@@ -653,7 +653,7 @@ HTML;
 
         $unknownKeys = array_diff(array_keys($element), $keys, array_keys($expectedKeys));
 
-        if (!empty($unknownKeys)) {
+        if ($unknownKeys) {
             $this->fail(sprintf(
                 'Failed asserting that element contains only known keys, found unknown key(s): %s',
                 implode(', ', $unknownKeys)
