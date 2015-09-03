@@ -138,18 +138,6 @@ abstract class DomContainerTest extends \PHPUnit_Framework_TestCase
         $this->assertValidOutputWithContextNodeChildrenOnly($dom->save($context, true));
     }
 
-    public function testToString()
-    {
-        $dom = $this->getContainer();
-
-        $this->assertValidOutput((string) $dom);
-    }
-
-    public function testToStringOnUninitializedContainer()
-    {
-        $this->assertSame('', (string) $this->createContainer());
-    }
-
     public function testEncoding()
     {
         $dom = $this->getContainer($this->getOption('custom_encoding'));

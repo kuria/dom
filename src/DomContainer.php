@@ -22,18 +22,6 @@ abstract class DomContainer
     protected $libxmlFlags = 0;
 
     /**
-     * @return string
-     */
-    public function __toString()
-    {
-        if ($this->document) {
-            return (string) $this->save();
-        } else {
-            return '';
-        }
-    }
-
-    /**
      * Clear the document and xpath instances
      *
      * @return static
