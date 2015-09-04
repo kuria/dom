@@ -169,7 +169,7 @@ class SimpleHtmlParser implements \Iterator
     
     /**
      * Escape a string
-     * 
+     *
      * @param string $string       the string to escape
      * @param string $mode         flags for htmlspecialchars
      * @param bool   $doubleEncode encode already existing entities 1/0

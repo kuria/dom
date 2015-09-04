@@ -284,7 +284,7 @@ abstract class DomContainerTest extends \PHPUnit_Framework_TestCase
 
     /**
      * Create a blank contaner
-     * 
+     *
      * @return DomContainer
      */
     abstract protected function createContainer();
