@@ -20,6 +20,38 @@ class XmlDocument extends DomContainer
         );
     }
 
+    public function loadEmpty($encoding = null, array $properties = null)
+    {
+        if (null === $encoding) {
+            $encoding = static::INTERNAL_ENCODING;
+        }
+
+        $e = null;
+        try {
+            $this->loadString(
+                <<<XML
+<?xml version="1.0" encoding="{$this->escape($encoding)}"?>
+<root />
+XML
+                ,
+                $properties
+            );
+
+            // remove the dummy root node
+            $this->removeAll($this->getDocument()->childNodes);
+        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
+        }
+
+        if (null !== $e) {
+            $this->clear();
+
+            throw $e;
+        }
+
+        return $this;
+    }
+
     protected function populate($content, $encoding = null)
     {
         $this->document->loadXML($content, $this->libxmlFlags);

@@ -16,11 +16,13 @@ class HtmlDocumentTest extends DomContainerTest
             'remove_query' => '//h1',
             'prepend_child_target_query' => '//body',
             'insert_after_target_query' => '//ul[@id="foo"]',
+            'remove_all_target_query' => '//ul[@id="bar"]',
         );
     }
 
     public function testConfiguration()
     {
+        /** @var HtmlDocument $dom */
         $dom = parent::testConfiguration();
 
         $this->assertTrue($dom->getHandleEncoding());
@@ -232,18 +234,27 @@ HTML;
         $this->assertLessThan($titlePosition, $metaHttpEquivPosition);
     }
 
-    protected function assertValidOutput($output, $encoding = DomContainer::INTERNAL_ENCODING)
+    protected function assertValidMinimalOutput($output, $encoding = DomContainer::INTERNAL_ENCODING)
     {
         $this->assertContains('<!doctype', $output, '', true);
         $this->assertContains('<html>', $output, '', true);
         $this->assertContains('<head>', $output, '', true);
         $this->assertRegExp(sprintf('~<meta http-equiv="Content-Type" content="text/html; charset=%s">~i', preg_quote($encoding, '~')), $output);
         $this->assertContains('<body>', $output, '', true);
+    }
+
+    protected function assertValidSampleOutput($output, $encoding = DomContainer::INTERNAL_ENCODING)
+    {
         $this->assertContains('<h1>', $output, '', true);
         $this->assertContains('<p>', $output, '', true);
         $this->assertContains('<ul id="foo">', $output, '', true);
         $this->assertContains('<ul id="bar">', $output, '', true);
         $this->assertContains('<li>', $output, '', true);
+    }
+
+    protected function assertValidEmptyOutput($output, $encoding = DomContainer::INTERNAL_ENCODING)
+    {
+        $this->assertRegExp('~<body>\s*</body>~', $output);
     }
 
     protected function assertValidOutputWithContextNode($output, $encoding = DomContainer::INTERNAL_ENCODING)

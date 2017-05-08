@@ -144,7 +144,7 @@ class SimpleHtmlParser implements \Iterator
     {
         $fallbackEncoding = strtoupper($fallbackEncoding);
 
-        if (!isset(self::$supportedEncodingMap[$fallbackEncoding])) {
+        if (!isset(static::$supportedEncodingMap[$fallbackEncoding])) {
             throw new \InvalidArgumentException(sprintf('Unsupported fallback encoding "%s"', $fallbackEncoding));
         }
 
@@ -195,7 +195,7 @@ class SimpleHtmlParser implements \Iterator
      */
     public function find($elemType, $tagName = null, $stopOffset = null)
     {
-        if (null !== $tagName && self::OPENING_TAG !== $elemType && self::CLOSING_TAG !== $elemType) {
+        if (null !== $tagName && static::OPENING_TAG !== $elemType && static::CLOSING_TAG !== $elemType) {
             throw new \LogicException('Can only specify tag name when searching for OPENING_TAG or CLOSING_TAG');
         }
 
@@ -301,8 +301,8 @@ class SimpleHtmlParser implements \Iterator
         // skip contents of known RAWTEXT tags
         if (
             false !== $this->current
-            && $this->current['type'] === self::OPENING_TAG
-            && isset(self::$rawtextTagMap[$this->current['name']])
+            && $this->current['type'] === static::OPENING_TAG
+            && isset(static::$rawtextTagMap[$this->current['name']])
         ) {
             $this->offset = false !== ($end = stripos($this->html, "</{$this->current['name']}>", $this->offset))
                 ? $end
@@ -366,7 +366,7 @@ class SimpleHtmlParser implements \Iterator
 
                 if (false !== ($end = strpos($this->html, '-->', $offset))) {
                     $result = array(
-                        'type' => self::COMMENT,
+                        'type' => static::COMMENT,
                         'start' => $match[0][1],
                         'end' => $end + 3,
                     );
@@ -380,7 +380,7 @@ class SimpleHtmlParser implements \Iterator
                 $isClosingTag = '/' === $match[1][0];
 
                 $result = array(
-                    'type' => $isClosingTag ? self::CLOSING_TAG : self::OPENING_TAG,
+                    'type' => $isClosingTag ? static::CLOSING_TAG : static::OPENING_TAG,
                     'start' => $match[0][1],
                     'end' => $offset + ($endMatch ? strlen($endMatch[0]) : 0),
                     'name' => strtolower($match[2][0]),
@@ -396,13 +396,13 @@ class SimpleHtmlParser implements \Iterator
 
                 $result = false !== $end
                     ? array(
-                        'type' => self::OTHER,
+                        'type' => static::OTHER,
                         'symbol' => $match[0][0][1],
                         'start' => $match[0][1],
                         'end' => $end + 1,
                     )
                     : array(
-                        'type' => self::INVALID,
+                        'type' => static::INVALID,
                         'start' => $match[0][1],
                         'end' => $match[0][1] + 2,
                     )
@@ -470,7 +470,7 @@ class SimpleHtmlParser implements \Iterator
 
         $found = false;
 
-        while ($element = $this->find(self::OTHER, null, 1024)) {
+        while ($element = $this->find(static::OTHER, null, 1024)) {
             if ('!' === $element['symbol']) {
                 $content = substr($this->html, $element['start'] + 2, $element['end'] - $element['start'] - 3);
 
@@ -501,7 +501,7 @@ class SimpleHtmlParser implements \Iterator
         $found = false;
         $pragma = false;
 
-        while ($metaTag = $this->find(self::OPENING_TAG, 'meta', 1024)) {
+        while ($metaTag = $this->find(static::OPENING_TAG, 'meta', 1024)) {
             if (isset($metaTag['attrs']['charset'])) {
                 $found = true;
                 break;
@@ -522,7 +522,7 @@ class SimpleHtmlParser implements \Iterator
 
         if ($found) {
             if ($pragma) {
-                $encoding = self::parseCharsetFromContentType($metaTag['attrs']['content']);
+                $encoding = static::parseCharsetFromContentType($metaTag['attrs']['content']);
             } else {
                 $encoding = $metaTag['attrs']['charset'];
             }
@@ -532,7 +532,7 @@ class SimpleHtmlParser implements \Iterator
             $encoding = strtoupper($encoding);
         }
 
-        if (false === $encoding || !isset(self::$supportedEncodingMap[$encoding])) {
+        if (false === $encoding || !isset(static::$supportedEncodingMap[$encoding])) {
             // no encoding has been specified or it is not supported
             $encoding = $this->fallbackEncoding;
         }

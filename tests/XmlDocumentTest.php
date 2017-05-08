@@ -16,6 +16,7 @@ class XmlDocumentTest extends DomContainerTest
             'remove_query' => '/list/item[@id="2"]',
             'prepend_child_target_query' => '/list',
             'insert_after_target_query' => '/list/item[@id="1"]',
+            'remove_all_target_query' => '/list',
         );
     }
 
@@ -29,14 +30,23 @@ class XmlDocumentTest extends DomContainerTest
         );
     }
 
-    protected function assertValidOutput($output, $encoding = DomContainer::INTERNAL_ENCODING)
+    protected function assertValidMinimalOutput($output, $encoding = DomContainer::INTERNAL_ENCODING)
     {
-        $this->assertRegExp(sprintf('~<?xml[^>]*encoding="%s"~i', preg_quote($encoding, '~')), $output);
+        $this->assertRegExp(sprintf('~<\?xml[^>]*encoding="%s"~i', preg_quote($encoding, '~')), $output);
+    }
+
+    protected function assertValidSampleOutput($output, $encoding = DomContainer::INTERNAL_ENCODING)
+    {
         $this->assertContains('<list>', $output, '', true);
         $this->assertContains('<item id="1">', $output, '', true);
         $this->assertContains('<item id="2">', $output, '', true);
         $this->assertContains('<alias>', $output, '', true);
         $this->assertContains('<position>', $output, '', true);
+    }
+
+    protected function assertValidEmptyOutput($output, $encoding = DomContainer::INTERNAL_ENCODING)
+    {
+        $this->assertRegExp('~^<\?xml[^>]*\?>\s*$~', $output);
     }
 
     protected function assertValidOutputWithContextNode($output, $encoding = DomContainer::INTERNAL_ENCODING)

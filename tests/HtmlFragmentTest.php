@@ -17,6 +17,7 @@ class HtmlFragmentTest extends DomContainerTest
             'remove_query' => '//h1',
             'prepend_child_target_query' => '.',
             'insert_after_target_query' => '//ul[@id="foo"]',
+            'remove_all_target_query' => '//ul[@id="bar"]',
         );
     }
 
@@ -30,18 +31,27 @@ class HtmlFragmentTest extends DomContainerTest
         );
     }
 
-    protected function assertValidOutput($output, $encoding = DomContainer::INTERNAL_ENCODING)
+    protected function assertValidMinimalOutput($output, $encoding = DomContainer::INTERNAL_ENCODING)
     {
         $this->assertNotContains('<!doctype', $output, '', true);
         $this->assertNotContains('<html>', $output, '', true);
         $this->assertNotContains('<head>', $output, '', true);
         $this->assertNotContains('<meta', $output, '', true);
         $this->assertNotContains('<body>', $output, '', true);
+    }
+
+    protected function assertValidSampleOutput($output, $encoding = DomContainer::INTERNAL_ENCODING)
+    {
         $this->assertContains('<h1>', $output, '', true);
         $this->assertContains('<p>', $output, '', true);
         $this->assertContains('<ul id="foo">', $output, '', true);
         $this->assertContains('<ul id="bar">', $output, '', true);
         $this->assertContains('<li>', $output, '', true);
+    }
+
+    protected function assertValidEmptyOutput($output, $encoding = DomContainer::INTERNAL_ENCODING)
+    {
+        $this->assertSame('', trim($output));
     }
 
     protected function assertValidOutputWithContextNode($output, $encoding = DomContainer::INTERNAL_ENCODING)

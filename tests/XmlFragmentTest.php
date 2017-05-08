@@ -17,6 +17,7 @@ class XmlFragmentTest extends DomContainerTest
             'remove_query' => '/item[@id="2"]',
             'prepend_child_target_query' => '.',
             'insert_after_target_query' => '/item[@id="1"]',
+            'remove_all_target_query' => '/item[@id="2"]',
         );
     }
 
@@ -30,13 +31,22 @@ class XmlFragmentTest extends DomContainerTest
         );
     }
 
-    protected function assertValidOutput($output, $encoding = DomContainer::INTERNAL_ENCODING)
+    protected function assertValidMinimalOutput($output, $encoding = DomContainer::INTERNAL_ENCODING)
     {
         $this->assertNotContains('<?xml', $output, '', true);
+    }
+
+    protected function assertValidSampleOutput($output, $encoding = DomContainer::INTERNAL_ENCODING)
+    {
         $this->assertContains('<item id="1">', $output, '', true);
         $this->assertContains('<item id="2">', $output, '', true);
         $this->assertContains('<alias>', $output, '', true);
         $this->assertContains('<position>', $output, '', true);
+    }
+
+    protected function assertValidEmptyOutput($output, $encoding = DomContainer::INTERNAL_ENCODING)
+    {
+        $this->assertSame('', trim($output));
     }
 
     protected function assertValidOutputWithContextNode($output, $encoding = DomContainer::INTERNAL_ENCODING)

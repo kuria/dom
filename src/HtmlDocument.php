@@ -156,6 +156,49 @@ class HtmlDocument extends DomContainer
         );
     }
 
+    public function loadEmpty($encoding = null, array $properties = null)
+    {
+        if (null === $encoding) {
+            $encoding = static::INTERNAL_ENCODING;
+        }
+
+        $handleEncoding = $this->handleEncoding;
+
+        $e = null;
+        try {
+            // suppress encoding handling as it is always specified the "correct" way
+            $this->handleEncoding = false;
+
+            $this->loadString(<<<HTML
+<!doctype html>
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset={$this->escape($encoding)}">
+    </head>
+    <body>
+    </body>
+</html>
+HTML
+                ,
+                $encoding,
+                $properties
+            );
+        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
+        }
+
+        // restore prior handleEncoding value
+        $this->handleEncoding = $handleEncoding;
+
+        if (null !== $e) {
+            $this->clear();
+
+            throw $e;
+        }
+
+        return $this;
+    }
+
     protected function populate($content, $encoding = null)
     {
         // handle document encoding

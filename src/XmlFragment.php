@@ -9,6 +9,11 @@ namespace Kuria\Dom;
  */
 class XmlFragment extends XmlDocument
 {
+    public function loadEmpty($encoding = null, array $properties = null)
+    {
+        return $this->loadString('', $encoding, $properties);
+    }
+
     protected function populate($content, $encoding = null)
     {
         if (!$encoding) {

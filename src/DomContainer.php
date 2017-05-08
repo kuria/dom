@@ -23,8 +23,6 @@ abstract class DomContainer
 
     /**
      * Clear the document and xpath instances
-     *
-     * @return static
      */
     public function clear()
     {
@@ -127,6 +125,15 @@ abstract class DomContainer
     {
         return new \DOMXPath($this->getDocument());
     }
+
+    /**
+     * Load an empty document
+     *
+     * @param string|null $encoding   encoding of the content (NULL = use UTF-8)
+     * @param array|null  $properties optional map of DOMDocument properties to set before loading
+     * @return static
+     */
+    abstract public function loadEmpty($encoding = null, array $properties = null);
 
     /**
      * Load document from a string
@@ -329,6 +336,19 @@ abstract class DomContainer
         }
 
         return $existingNode->parentNode->removeChild($existingNode);
+    }
+
+    /**
+     * Safely purge a node list (in reverse)
+     *
+     * @param \DOMNodeList $nodes
+     */
+    public function removeAll(\DOMNodeList $nodes)
+    {
+        for ($i = $nodes->length - 1; $i >= 0; --$i) {
+            $node = $nodes->item($i);
+            $node->parentNode->removeChild($node);
+        }
     }
 
     /**
