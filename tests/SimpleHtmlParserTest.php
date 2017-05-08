@@ -32,6 +32,19 @@ class SimpleHtmlParserTest extends \PHPUnit_Framework_TestCase
         ));
     }
 
+    public function testMatchOpeningTagWithSpecialCharacters()
+    {
+        $html = '<Foo:barž>';
+
+        $this->matchAndAssert($html, array(
+            'type' => SimpleHtmlParser::OPENING_TAG,
+            'start' => 0,
+            'end' => strlen($html),
+            'name' => 'Foo:barž',
+            'attrs' => array(),
+        ));
+    }
+
     public function testMatchOpeningTagWithAttributes()
     {
         $this->matchAndAssert('<A HREF="http://example.com?FOO" id="foo"  class=link >', array(
@@ -97,6 +110,18 @@ class SimpleHtmlParserTest extends \PHPUnit_Framework_TestCase
         ));
     }
 
+    public function testMatchClosingTagWithSpecialCharacters()
+    {
+        $html = '</Foo-barž>';
+
+        $this->matchAndAssert($html, array(
+            'type' => SimpleHtmlParser::CLOSING_TAG,
+            'start' => 0,
+            'end' => strlen($html),
+            'name' => 'Foo-barž',
+        ));
+    }
+
     public function testMatchClosingTagWithAttributes()
     {
         $this->matchAndAssert('</A id="nonsense">', array(
@@ -128,7 +153,7 @@ class SimpleHtmlParserTest extends \PHPUnit_Framework_TestCase
     {
         $this->matchAndAssertFailure('<');
         $this->matchAndAssertFailure('< foo');
-        $this->matchAndAssertFailure('<-bar');
+        $this->matchAndAssertFailure('<+bar');
         $this->matchAndAssertFailure('<#');
         
         $this->matchAndAssert('<?', array(

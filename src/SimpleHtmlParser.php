@@ -7,7 +7,7 @@ namespace Kuria\Dom;
  *
  *  - parsing basic HTML elements
  *  - sniffing the document's encoding
- *  - tag and attribute names are always lowercased
+ *  - tag and attribute names that contain only ASCII characters are lowercased
  *  - loosely based on http://www.w3.org/TR/2011/WD-html5-20110113/parsing.html
  *
  * @author ShiraNai7 <shira.cz>
@@ -171,7 +171,7 @@ class SimpleHtmlParser implements \Iterator
      * Escape a string
      *
      * @param string $string       the string to escape
-     * @param string $mode         flags for htmlspecialchars
+     * @param int    $mode         flags for htmlspecialchars
      * @param bool   $doubleEncode encode already existing entities 1/0
      * @return string
      */
@@ -350,6 +350,7 @@ class SimpleHtmlParser implements \Iterator
     /**
      * Match the HTML at the current offset
      *
+     * @param int $offset
      * @return array|bool
      */
     protected function match($offset)
@@ -358,7 +359,7 @@ class SimpleHtmlParser implements \Iterator
 
         if (
             $offset < $this->length
-            && preg_match('~<!--|<(/?)(\w+)|<[!?/]~', $this->html, $match, PREG_OFFSET_CAPTURE, $offset)
+            && preg_match('~<!--|<(/?)([\w-:\x80-\xFF]+)|<[!?/]~', $this->html, $match, PREG_OFFSET_CAPTURE, $offset)
         ) {
             if ('<!--' === $match[0][0]) {
                 // comment
@@ -383,7 +384,7 @@ class SimpleHtmlParser implements \Iterator
                     'type' => $isClosingTag ? static::CLOSING_TAG : static::OPENING_TAG,
                     'start' => $match[0][1],
                     'end' => $offset + ($endMatch ? strlen($endMatch[0]) : 0),
-                    'name' => strtolower($match[2][0]),
+                    'name' => $this->normalizeIdentifier($match[2][0]),
                 );
 
                 if (!$isClosingTag) {
@@ -417,7 +418,6 @@ class SimpleHtmlParser implements \Iterator
      * Match tag attributes
      *
      * @param int $offset
-     * @param int $mode
      * @return array attributes, offset
      */
     protected function matchAttributes($offset)
@@ -452,10 +452,24 @@ class SimpleHtmlParser implements \Iterator
                 }
             }
 
-            $attrs[strtolower($name)] = $value;
+            $attrs[$this->normalizeIdentifier($name)] = $value;
         }
 
         return array($attrs, $offset);
+    }
+
+    /**
+     * @param string $name
+     * @return string
+     */
+    protected function normalizeIdentifier($name)
+    {
+        // lowercase only if the name consists of ASCII characters
+        if (preg_match('~^[^\x80-\xFF]+$~', $name)) {
+            return strtolower($name);
+        }
+
+        return $name;
     }
 
     /**
