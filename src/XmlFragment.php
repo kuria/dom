@@ -23,9 +23,7 @@ class XmlFragment extends XmlDocument
         parent::populate(
             <<<XML
 <?xml version="1.0" encoding="{$this->escape($encoding)}"?>
-<root>
-{$content}
-</root>
+<root>{$content}</root>
 XML
             ,
             $encoding
