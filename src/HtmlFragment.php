@@ -48,7 +48,7 @@ HTML
     public function save(\DOMNode $contextNode = null, $childrenOnly = false)
     {
         if (null === $contextNode) {
-            $contextNode = $this->getXpath()->query('/html/body')->item(0);
+            $contextNode = $this->getBody();
             $childrenOnly = true;
         }
 
@@ -59,14 +59,32 @@ HTML
     {
         // if no context node has been given, assume <body>
         if (null === $contextNode) {
-            $contextNode = $this->getDocument()->getElementsByTagName('body')->item(0);
+            $contextNode = $this->getBody();
 
             // make sure the query is relative to the context node
-            if ($contextNode && '' !== $expression && '.' !== $expression[0]) {
+            if ('' !== $expression && '.' !== $expression[0]) {
                 $expression = '.' . $expression;
             }
         }
 
         return parent::query($expression, $contextNode, $registerNodeNs);
+    }
+
+    /**
+     * Get the body element
+     *
+     * @throws \RuntimeException if the body element is not found
+     * @return \DOMElement
+     */
+    public function getBody()
+    {
+        /** @var \DOMElement|null $body */
+        $body = $this->getXpath()->query('/html/body')->item(0);
+
+        if (!$body) {
+            throw new \RuntimeException('The body element was not found');
+        }
+
+        return $body;
     }
 }

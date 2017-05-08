@@ -31,6 +31,15 @@ class HtmlFragmentTest extends DomContainerTest
         );
     }
 
+    public function testGetBody()
+    {
+        /** @var HtmlFragment $dom */
+        $dom = $this->getContainer();
+
+        $this->assertInstanceOf('DOMElement', $dom->getBody());
+        $this->assertSame('body', $dom->getBody()->tagName);
+    }
+
     protected function assertValidMinimalOutput($output, $encoding = DomContainer::INTERNAL_ENCODING)
     {
         $this->assertNotContains('<!doctype', $output, '', true);
