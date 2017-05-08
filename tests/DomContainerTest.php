@@ -47,22 +47,20 @@ abstract class DomContainerTest extends \PHPUnit_Framework_TestCase
         return $dom;
     }
 
-    /**
-     * @expectedException        RuntimeException
-     * @expectedExceptionMessage Document has not been initialized
-     */
-    public function testExceptionOnUninitializedDocument()
+    public function testAutomaticLoadEmptyOnUninitializedDocument()
     {
-        $this->createContainer()->getDocument();
-    }
+        $dom = $this->createContainer();
 
-    /**
-     * @expectedException        RuntimeException
-     * @expectedExceptionMessage Document has not been initialized
-     */
-    public function testExceptionOnUninitializedDocument2()
-    {
-        $this->createContainer()->getXpath();
+        $this->assertFalse($dom->isLoaded());
+
+        $document = $dom->getDocument();
+
+        $this->assertInstanceOf('DOMDocument', $document);
+
+        $output = $dom->save();
+
+        $this->assertValidMinimalOutput($output);
+        $this->assertValidEmptyOutput($output);
     }
 
     public function testLoadEmpty()

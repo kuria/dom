@@ -94,13 +94,16 @@ abstract class DomContainer
     }
 
     /**
-     * @throws \RuntimeException if the document has not been initialized yet
+     * Get the DOM document instance
+     *
+     * If the the document hasn't been intialized yet, an empty document will be loaded - {@see loadEmpty()}.
+     *
      * @return \DOMDocument
      */
     public function getDocument()
     {
         if (null === $this->document) {
-            throw new \RuntimeException('Document has not been initialized yet');
+            $this->loadEmpty();
         }
 
         return $this->document;
