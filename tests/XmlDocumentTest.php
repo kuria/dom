@@ -30,6 +30,27 @@ class XmlDocumentTest extends DomContainerTest
         );
     }
 
+    public function testGetRoot()
+    {
+        /** @var XmlFragment $dom */
+        $dom = $this->getContainer();
+
+        $this->assertInstanceOf('DOMElement', $dom->getRoot());
+        $this->assertSame('list', $dom->getRoot()->tagName);
+    }
+
+    /**
+     * @expectedException RuntimeException
+     * @expectedExceptionMessage The root element was not found
+     */
+    public function testExceptionOnMissingRoot()
+    {
+        /** @var XmlFragment $dom */
+        $dom = $this->createContainer();
+
+        $dom->getRoot();
+    }
+
     protected function assertValidMinimalOutput($output, $encoding = DomContainer::INTERNAL_ENCODING)
     {
         $this->assertRegExp(sprintf('~<\?xml[^>]*encoding="%s"~i', preg_quote($encoding, '~')), $output);

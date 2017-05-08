@@ -69,4 +69,22 @@ XML
 
         return $content;
     }
+
+    /**
+     * Get the root element
+     *
+     * @throws \RuntimeException if the root element is not found
+     * @return \DOMElement
+     */
+    public function getRoot()
+    {
+        /** @var \DOMElement|null $root */
+        $root = $this->getDocument()->firstChild;
+
+        if (!$root) {
+            throw new \RuntimeException('The root element was not found');
+        }
+
+        return $root;
+    }
 }

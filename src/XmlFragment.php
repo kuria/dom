@@ -54,22 +54,4 @@ XML
 
         return parent::query($expression, $contextNode, $registerNodeNs);
     }
-
-    /**
-     * Get the root element
-     *
-     * @throws \RuntimeException if the root element is not found
-     * @return \DOMElement
-     */
-    public function getRoot()
-    {
-        /** @var \DOMElement|null $root */
-        $root = $this->getXpath()->query('/root')->item(0);
-
-        if (!$root) {
-            throw new \RuntimeException('The root element was not found');
-        }
-
-        return $root;
-    }
 }
