@@ -132,11 +132,10 @@ abstract class DomContainer
     /**
      * Load an empty document
      *
-     * @param string|null $encoding   encoding of the content (NULL = use UTF-8)
-     * @param array|null  $properties optional map of DOMDocument properties to set before loading
+     * @param array|null $properties optional map of DOMDocument properties to set before loading
      * @return static
      */
-    abstract public function loadEmpty($encoding = null, array $properties = null);
+    abstract public function loadEmpty(array $properties = null);
 
     /**
      * Load document from a string

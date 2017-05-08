@@ -20,20 +20,17 @@ class XmlDocument extends DomContainer
         );
     }
 
-    public function loadEmpty($encoding = null, array $properties = null)
+    public function loadEmpty(array $properties = null)
     {
-        if (null === $encoding) {
-            $encoding = static::INTERNAL_ENCODING;
-        }
-
         $e = null;
         try {
             $this->loadString(
                 <<<XML
-<?xml version="1.0" encoding="{$this->escape($encoding)}"?>
+<?xml version="1.0" encoding="{$this->escape(static::INTERNAL_ENCODING)}"?>
 <root />
 XML
                 ,
+                null,
                 $properties
             );
 

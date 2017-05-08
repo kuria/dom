@@ -156,12 +156,8 @@ class HtmlDocument extends DomContainer
         );
     }
 
-    public function loadEmpty($encoding = null, array $properties = null)
+    public function loadEmpty(array $properties = null)
     {
-        if (null === $encoding) {
-            $encoding = static::INTERNAL_ENCODING;
-        }
-
         $handleEncoding = $this->handleEncoding;
 
         $e = null;
@@ -173,14 +169,14 @@ class HtmlDocument extends DomContainer
 <!doctype html>
 <html>
     <head>
-        <meta http-equiv="Content-Type" content="text/html; charset={$this->escape($encoding)}">
+        <meta http-equiv="Content-Type" content="text/html; charset={$this->escape(static::INTERNAL_ENCODING)}">
     </head>
     <body>
     </body>
 </html>
 HTML
                 ,
-                $encoding,
+                null,
                 $properties
             );
         } catch (\Exception $e) {

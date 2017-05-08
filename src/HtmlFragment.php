@@ -17,9 +17,9 @@ class HtmlFragment extends HtmlDocument
      */
     protected $handleEncoding = false;
 
-    public function loadEmpty($encoding = null, array $properties = null)
+    public function loadEmpty(array $properties = null)
     {
-        return $this->loadString('', $encoding, $properties);
+        return $this->loadString('', null, $properties);
     }
 
     protected function populate($content, $encoding = null)
