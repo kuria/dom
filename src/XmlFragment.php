@@ -35,7 +35,7 @@ XML
     public function save(\DOMNode $contextNode = null, $childrenOnly = false)
     {
         if (null === $contextNode) {
-            $contextNode = $this->getXpath()->query('/root')->item(0);
+            $contextNode = $this->getRoot();
             $childrenOnly = true;
         }
 
@@ -46,14 +46,32 @@ XML
     {
         // if no context node has been given, assume <root>
         if (null === $contextNode) {
-            $contextNode = $this->getXpath()->query('/root')->item(0);
+            $contextNode = $this->getRoot();
 
             // make sure the query is relative to the context node
-            if ($contextNode && '' !== $expression && '.' !== $expression[0]) {
+            if ('' !== $expression && '.' !== $expression[0]) {
                 $expression = '.' . $expression;
             }
         }
 
         return parent::query($expression, $contextNode, $registerNodeNs);
+    }
+
+    /**
+     * Get the root element
+     *
+     * @throws \RuntimeException if the root element is not found
+     * @return \DOMElement
+     */
+    public function getRoot()
+    {
+        /** @var \DOMElement|null $root */
+        $root = $this->getXpath()->query('/root')->item(0);
+
+        if (!$root) {
+            throw new \RuntimeException('The root element was not found');
+        }
+
+        return $root;
     }
 }

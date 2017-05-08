@@ -31,6 +31,15 @@ class XmlFragmentTest extends DomContainerTest
         );
     }
 
+    public function testGetRoot()
+    {
+        /** @var XmlFragment $dom */
+        $dom = $this->getContainer();
+
+        $this->assertInstanceOf('DOMElement', $dom->getRoot());
+        $this->assertSame('root', $dom->getRoot()->tagName);
+    }
+
     protected function assertValidMinimalOutput($output, $encoding = DomContainer::INTERNAL_ENCODING)
     {
         $this->assertNotContains('<?xml', $output, '', true);
