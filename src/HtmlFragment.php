@@ -67,22 +67,4 @@ HTML
 
         return parent::query($expression, $contextNode, $registerNodeNs);
     }
-
-    /**
-     * Get the body element
-     *
-     * @throws \RuntimeException if the body element is not found
-     * @return \DOMElement
-     */
-    public function getBody()
-    {
-        /** @var \DOMElement|null $body */
-        $body = $this->getXpath()->query('/html/body')->item(0);
-
-        if (!$body) {
-            throw new \RuntimeException('The body element was not found');
-        }
-
-        return $body;
-    }
 }

@@ -41,6 +41,50 @@ class HtmlDocumentTest extends DomContainerTest
             $dom->escape('<a href="http://example.com/?foo=bar&amp;lorem=ipsum">Test</a>')
         );
     }
+
+    public function testGetHead()
+    {
+        /** @var HtmlDocument $dom */
+        $dom = $this->getContainer();
+
+        $this->assertInstanceOf('DOMElement', $dom->getHead());
+        $this->assertSame('head', $dom->getHead()->tagName);
+    }
+
+    /**
+     * @expectedException RuntimeException
+     * @expectedExceptionMessage The head element was not found
+     */
+    public function testExceptionOnMissinHead()
+    {
+        /** @var HtmlDocument $dom */
+        $dom = $this->createContainer();
+
+        $dom->remove($dom->getHead());
+        $dom->getHead();
+    }
+
+    public function testGetBody()
+    {
+        /** @var HtmlDocument $dom */
+        $dom = $this->getContainer();
+
+        $this->assertInstanceOf('DOMElement', $dom->getBody());
+        $this->assertSame('body', $dom->getBody()->tagName);
+    }
+
+    /**
+     * @expectedException RuntimeException
+     * @expectedExceptionMessage The body element was not found
+     */
+    public function testExceptionOnMissingBody()
+    {
+        /** @var HtmlDocument $dom */
+        $dom = $this->createContainer();
+
+        $dom->remove($dom->getBody());
+        $dom->getBody();
+    }
     
     public function testSetEncodingUpdatesExistingMetaHttpEquiv()
     {

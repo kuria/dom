@@ -245,6 +245,42 @@ HTML
     }
 
     /**
+     * Get the head element
+     *
+     * @throws \RuntimeException if the head element is not found
+     * @return \DOMElement
+     */
+    public function getHead()
+    {
+        /** @var \DOMElement|null $head */
+        $head = $this->getDocument()->getElementsByTagName('head')->item(0);
+
+        if (!$head) {
+            throw new \RuntimeException('The head element was not found');
+        }
+
+        return $head;
+    }
+
+    /**
+     * Get the body element
+     *
+     * @throws \RuntimeException if the body element is not found
+     * @return \DOMElement
+     */
+    public function getBody()
+    {
+        /** @var \DOMElement|null $body */
+        $body = $this->getDocument()->getElementsByTagName('body')->item(0);
+
+        if (!$body) {
+            throw new \RuntimeException('The body element was not found');
+        }
+
+        return $body;
+    }
+
+    /**
      * Make sure the passed HTML document string contains an encoding
      * specification that is supported by the DOM extension.
      *

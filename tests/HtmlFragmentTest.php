@@ -31,6 +31,15 @@ class HtmlFragmentTest extends DomContainerTest
         );
     }
 
+    public function testGetHead()
+    {
+        /** @var HtmlFragment $dom */
+        $dom = $this->getContainer();
+
+        $this->assertInstanceOf('DOMElement', $dom->getHead());
+        $this->assertSame('head', $dom->getHead()->tagName);
+    }
+
     public function testGetBody()
     {
         /** @var HtmlFragment $dom */
