@@ -1,7 +1,7 @@
 {
     "name": "kuria/dom",
     "description": "Wrappers around the PHP DOM classes.",
-    "keywords": ["DOM", "document object model", "wrapper", "DOMDocument", "XPath", "Tidy"],
+    "keywords": ["DOM", "document object model", "wrapper", "DOMDocument", "XPath", "HTML", "XML"],
     "license": "MIT",
     "require": {
         "php": ">=5.3.0"
@@ -12,6 +12,11 @@
     "autoload": {
         "psr-4": {
             "Kuria\\Dom\\": "src"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Kuria\\Dom\\": "tests"
         }
     }
 }
