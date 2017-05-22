@@ -230,14 +230,12 @@ HTML
                 foreach ($contextNode->childNodes as $node) {
                     $content .= $useSaveHtmlArgument
                         ? $document->saveHTML($node)
-                        : $document->saveXML($node)
-                    ;
+                        : $document->saveXML($node);
                 }
             } else {
                 $content = $useSaveHtmlArgument
                     ? $document->saveHTML($contextNode)
-                    : $document->saveXML($contextNode)
-                ;
+                    : $document->saveXML($contextNode);
             }
         }
 

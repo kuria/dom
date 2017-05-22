@@ -364,8 +364,7 @@ abstract class DomContainer
     {
         return $existingNode->firstChild
             ? $existingNode->insertBefore($newNode, $existingNode->firstChild)
-            : $existingNode->appendChild($newNode)
-        ;
+            : $existingNode->appendChild($newNode);
     }
 
     /**

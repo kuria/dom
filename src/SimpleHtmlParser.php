@@ -86,8 +86,7 @@ class SimpleHtmlParser implements \Iterator
     {
         return null !== $element
             ? substr($this->html, $element['start'], $element['end'] - $element['start'])
-            : $this->html
-        ;
+            : $this->html;
     }
 
     /**
@@ -306,8 +305,7 @@ class SimpleHtmlParser implements \Iterator
         ) {
             $this->offset = false !== ($end = stripos($this->html, "</{$this->current['name']}>", $this->offset))
                 ? $end
-                : $this->length
-            ;
+                : $this->length;
         }
 
         // match a thing
@@ -323,7 +321,6 @@ class SimpleHtmlParser implements \Iterator
                 } else {
                     $this->index = 0;
                 }
-
             } else {
                 // could not match anything
                 $this->offset = $this->length;
@@ -406,8 +403,7 @@ class SimpleHtmlParser implements \Iterator
                         'type' => static::INVALID,
                         'start' => $match[0][1],
                         'end' => $match[0][1] + 2,
-                    )
-                ;
+                    );
             }
         }
 
@@ -566,7 +562,6 @@ class SimpleHtmlParser implements \Iterator
         // http://www.w3.org/TR/2011/WD-html5-20110113/fetching-resources.html#algorithm-for-extracting-an-encoding-from-a-content-type
         return preg_match('~charset\s*+=\s*+(["\'])?+(?(1)(.+)(?=\1)|([^\s;]+))~i', $contentType, $match)
             ? $match[isset($match[3]) ? 3 : 2]
-            : false
-        ;
+            : false;
     }
 }
