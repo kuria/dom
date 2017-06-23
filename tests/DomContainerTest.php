@@ -9,7 +9,7 @@ abstract class DomContainerTest extends \PHPUnit_Framework_TestCase
 
     protected function getOption($name)
     {
-        if (null === $this->options) {
+        if ($this->options === null) {
             $this->options = $this->initializeOptions() + array(
                 'is_fragment' => false,
                 'custom_encoding' => 'ISO-8859-15',
@@ -362,7 +362,7 @@ abstract class DomContainerTest extends \PHPUnit_Framework_TestCase
      */
     protected function getEncodedTestString($encoding = DomContainer::INTERNAL_ENCODING, $string = 'Foo-áž-bar')
     {
-        if (0 !== strcasecmp('UTF-8', $encoding)) {
+        if (strcasecmp('UTF-8', $encoding) !== 0) {
             $string = mb_convert_encoding($string, $encoding, 'UTF-8');
         }
 
@@ -374,7 +374,7 @@ abstract class DomContainerTest extends \PHPUnit_Framework_TestCase
         $this->assertTrue($dom->isLoaded());
         $this->assertInstanceof('DOMDocument', $dom->getDocument());
         $this->assertInstanceof('DOMXPath', $dom->getXpath());
-        $this->assertTrue(0 === strcasecmp($returnedEncoding = $dom->getEncoding(), $encoding), sprintf('getEncoding() should return the used encoding ("%s" returned vs "%s" actual)', $returnedEncoding, $encoding));
+        $this->assertTrue(strcasecmp($returnedEncoding = $dom->getEncoding(), $encoding) === 0, sprintf('getEncoding() should return the used encoding ("%s" returned vs "%s" actual)', $returnedEncoding, $encoding));
     }
 
     protected function assertValidEncodedTestString(DomContainer $dom)

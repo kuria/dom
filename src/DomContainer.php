@@ -37,7 +37,7 @@ abstract class DomContainer
      */
     public function isLoaded()
     {
-        return null !== $this->document;
+        return $this->document !== null;
     }
 
     /**
@@ -102,7 +102,7 @@ abstract class DomContainer
      */
     public function getDocument()
     {
-        if (null === $this->document) {
+        if ($this->document === null) {
             $this->loadEmpty();
         }
 
@@ -114,7 +114,7 @@ abstract class DomContainer
      */
     public function getXpath()
     {
-        if (null === $this->xpath) {
+        if ($this->xpath === null) {
             $this->xpath = $this->createXpath();
         }
 
@@ -158,7 +158,7 @@ abstract class DomContainer
         try {
             $this->document = new \DOMDocument();
 
-            if (null !== $properties) {
+            if ($properties !== null) {
                 foreach ($properties as $property => $value) {
                     $this->document->{$property} = $value;
                 }
@@ -174,7 +174,7 @@ abstract class DomContainer
             libxml_use_internal_errors($originalUseInternalErrors);
         }
 
-        if (null !== $e) {
+        if ($e !== null) {
             $this->clear();
 
             throw $e;
@@ -270,7 +270,7 @@ abstract class DomContainer
 
             // make sure an exception is thrown on failure
             // @codeCoverageIgnoreStart
-            if (false === $result) {
+            if ($result === false) {
                 throw new \RuntimeException('Invalid expression or context node');
             }
             // @codeCoverageIgnoreEnd
@@ -309,11 +309,11 @@ abstract class DomContainer
      */
     public function contains(\DOMNode $node, \DOMNode $parentNode = null)
     {
-        if (null === $parentNode) {
+        if ($parentNode === null) {
             $parentNode = $this->getDocument();
         }
 
-        while (null !== $node->parentNode) {
+        while ($node->parentNode !== null) {
             $node = $node->parentNode;
 
             if ($parentNode === $node) {

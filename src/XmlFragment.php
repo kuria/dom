@@ -32,7 +32,7 @@ XML
 
     public function save(\DOMNode $contextNode = null, $childrenOnly = false)
     {
-        if (null === $contextNode) {
+        if ($contextNode === null) {
             $contextNode = $this->getRoot();
             $childrenOnly = true;
         }
@@ -43,11 +43,11 @@ XML
     public function query($expression, \DOMNode $contextNode = null, $registerNodeNs = true)
     {
         // if no context node has been given, assume <root>
-        if (null === $contextNode) {
+        if ($contextNode === null) {
             $contextNode = $this->getRoot();
 
             // make sure the query is relative to the context node
-            if ('' !== $expression && '.' !== $expression[0]) {
+            if ($expression !== '' && $expression[0] !== '.') {
                 $expression = '.' . $expression;
             }
         }

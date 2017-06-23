@@ -45,7 +45,7 @@ HTML
 
     public function save(\DOMNode $contextNode = null, $childrenOnly = false)
     {
-        if (null === $contextNode) {
+        if ($contextNode === null) {
             $contextNode = $this->getBody();
             $childrenOnly = true;
         }
@@ -56,11 +56,11 @@ HTML
     public function query($expression, \DOMNode $contextNode = null, $registerNodeNs = true)
     {
         // if no context node has been given, assume <body>
-        if (null === $contextNode) {
+        if ($contextNode === null) {
             $contextNode = $this->getBody();
 
             // make sure the query is relative to the context node
-            if ('' !== $expression && '.' !== $expression[0]) {
+            if ($expression !== '' && $expression[0] !== '.') {
                 $expression = '.' . $expression;
             }
         }

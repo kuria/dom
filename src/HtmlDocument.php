@@ -107,17 +107,17 @@ class HtmlDocument extends DomContainer
 
             foreach ($meta->attributes as $attr) {
                 if (
-                    null === $httpEquivAttr
-                    && 0 === strcasecmp('http-equiv', $attr->nodeName)
-                    && 0 === strcasecmp('Content-Type', $attr->nodeValue)
+                    $httpEquivAttr === null
+                    && strcasecmp('http-equiv', $attr->nodeName) === 0
+                    && strcasecmp('Content-Type', $attr->nodeValue) === 0
                 ) {
                     $httpEquivAttr = $attr;
                 } elseif (
-                    null === $contentAttr
-                    && 0 === strcasecmp('content', $attr->nodeName)
+                    $contentAttr === null
+                    && strcasecmp('content', $attr->nodeName) === 0
                 ) {
                     $contentAttr = $attr;
-                } elseif (0 === strcasecmp('charset', $attr->nodeName)) {
+                } elseif (strcasecmp('charset', $attr->nodeName) === 0) {
                     // remove the <meta charset="..."> tag
                     // (the DOM extension does not support it)
                     $this->remove($meta);
@@ -186,7 +186,7 @@ HTML
         // restore prior handleEncoding value
         $this->handleEncoding = $handleEncoding;
 
-        if (null !== $e) {
+        if ($e !== null) {
             $this->clear();
 
             throw $e;
@@ -219,7 +219,7 @@ HTML
     {
         $document = $this->getDocument();
 
-        if (null === $contextNode) {
+        if ($contextNode === null) {
             $content = $document->saveHTML();
         } else {
             // saveHTML($node) is supported since PHP 5.3.6
@@ -294,24 +294,24 @@ HTML
         $usedEncoding = $knownEncoding ?: $specifiedEncoding;
 
         if (
-            null === $encodingTag // no tag, need to insert
+            $encodingTag === null // no tag, need to insert
             || isset($encodingTag['attrs']['charset']) // the DOM extension does not support <meta charset="...">
-            || null !== $knownEncoding && 0 !== strcasecmp($specifiedEncoding, $knownEncoding) // the encodings are different
+            || $knownEncoding !== null && strcasecmp($specifiedEncoding, $knownEncoding) !== 0 // the encodings are different
         ) {
             $replacement = "<meta http-equiv=\"Content-Type\" content=\"text/html; charset={$document->escape($usedEncoding)}\">";
             
-            if (null === $encodingTag) {
+            if ($encodingTag === null) {
                 $insertAfter = $document->find(SimpleHtmlParser::OPENING_TAG, 'head', 1024) ?: $document->getDoctypeElement();
             }
 
             $document = null;
 
-            if (null !== $encodingTag) {
+            if ($encodingTag !== null) {
                 // replace the existing tag
                 $htmlDocument = substr_replace($htmlDocument, $replacement, $encodingTag['start'], $encodingTag['end'] - $encodingTag['start']);
             } else {
                 // insert new tag
-                if (null !== $insertAfter) {
+                if ($insertAfter !== null) {
                     // after <head> or the doctype
                     $htmlDocument = substr_replace($htmlDocument, $replacement, $insertAfter['end'], 0);
                 } else {

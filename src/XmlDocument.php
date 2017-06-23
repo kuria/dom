@@ -40,7 +40,7 @@ XML
         } catch (\Throwable $e) {
         }
 
-        if (null !== $e) {
+        if ($e !== null) {
             $this->clear();
 
             throw $e;
@@ -58,7 +58,7 @@ XML
     {
         $document = $this->getDocument();
 
-        if (null === $contextNode || !$childrenOnly) {
+        if ($contextNode === null || !$childrenOnly) {
             $content = $document->saveXML($contextNode);
         } else {
             $content = '';

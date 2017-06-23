@@ -84,7 +84,7 @@ class SimpleHtmlParser implements \Iterator
      */
     public function getHtml(array $element = null)
     {
-        return null !== $element
+        return $element !== null
             ? substr($this->html, $element['start'], $element['end'] - $element['start'])
             : $this->html;
     }
@@ -106,7 +106,7 @@ class SimpleHtmlParser implements \Iterator
      */
     public function getEncoding()
     {
-        if (null === $this->encoding) {
+        if ($this->encoding === null) {
             $this->detectEncoding();
         }
 
@@ -122,7 +122,7 @@ class SimpleHtmlParser implements \Iterator
      */
     public function getEncodingTag()
     {
-        if (null === $this->encoding) {
+        if ($this->encoding === null) {
             $this->detectEncoding();
         }
 
@@ -159,7 +159,7 @@ class SimpleHtmlParser implements \Iterator
      */
     public function getDoctypeElement()
     {
-        if (null === $this->doctypeElement) {
+        if ($this->doctypeElement === null) {
             $this->doctypeElement = $this->findDoctype();
         }
 
@@ -176,7 +176,7 @@ class SimpleHtmlParser implements \Iterator
      */
     public function escape($string, $mode = ENT_QUOTES, $doubleEncode = true)
     {
-        if (null === $this->encoding) {
+        if ($this->encoding === null) {
             $this->detectEncoding();
         }
         
@@ -194,17 +194,17 @@ class SimpleHtmlParser implements \Iterator
      */
     public function find($elemType, $tagName = null, $stopOffset = null)
     {
-        if (null !== $tagName && static::OPENING_TAG !== $elemType && static::CLOSING_TAG !== $elemType) {
+        if ($tagName !== null && static::OPENING_TAG !== $elemType && static::CLOSING_TAG !== $elemType) {
             throw new \LogicException('Can only specify tag name when searching for OPENING_TAG or CLOSING_TAG');
         }
 
-        while (false !== $this->current && (null === $stopOffset || $this->offset < $stopOffset)) {
+        while ($this->current !== false && ($stopOffset === null || $this->offset < $stopOffset)) {
             $this->next();
 
             if (
-                false !== $this->current
+                $this->current !== false
                 && $elemType === $this->current['type']
-                && (null === $tagName || $this->current['name'] === $tagName)
+                && ($tagName === null || $this->current['name'] === $tagName)
             ) {
                 return $this->current;
             }
@@ -240,7 +240,7 @@ class SimpleHtmlParser implements \Iterator
      */
     public function popState()
     {
-        if (null === array_pop($this->stateStack)) {
+        if (array_pop($this->stateStack) === null) {
             throw new \LogicException('The state stack is empty');
         }
     }
@@ -279,7 +279,7 @@ class SimpleHtmlParser implements \Iterator
 
     public function current()
     {
-        if (null === $this->current) {
+        if ($this->current === null) {
             $this->next();
         }
 
@@ -288,7 +288,7 @@ class SimpleHtmlParser implements \Iterator
 
     public function key()
     {
-        if (null === $this->current) {
+        if ($this->current === null) {
             $this->next();
         }
 
@@ -299,24 +299,24 @@ class SimpleHtmlParser implements \Iterator
     {
         // skip contents of known RAWTEXT tags
         if (
-            false !== $this->current
+            $this->current !== false
             && $this->current['type'] === static::OPENING_TAG
             && isset(static::$rawtextTagMap[$this->current['name']])
         ) {
-            $this->offset = false !== ($end = stripos($this->html, "</{$this->current['name']}>", $this->offset))
+            $this->offset = ($end = stripos($this->html, "</{$this->current['name']}>", $this->offset)) !== (false)
                 ? $end
                 : $this->length;
         }
 
         // match a thing
-        if (false !== $this->current) {
+        if ($this->current !== false) {
             $this->current = $this->match($this->offset);
 
-            if (false !== $this->current) {
+            if ($this->current !== false) {
                 // advance offset and index
                 $this->offset = $this->current['end'];
 
-                if (null !== $this->index) {
+                if ($this->index !== null) {
                     ++$this->index;
                 } else {
                     $this->index = 0;
@@ -337,11 +337,11 @@ class SimpleHtmlParser implements \Iterator
 
     public function valid()
     {
-        if (null === $this->current) {
+        if ($this->current === null) {
             $this->next();
         }
 
-        return false !== $this->current;
+        return $this->current !== false;
     }
 
     /**
@@ -358,11 +358,11 @@ class SimpleHtmlParser implements \Iterator
             $offset < $this->length
             && preg_match('~<!--|<(/?)([\w-:\x80-\xFF]+)|<[!?/]~', $this->html, $match, PREG_OFFSET_CAPTURE, $offset)
         ) {
-            if ('<!--' === $match[0][0]) {
+            if ($match[0][0] === '<!--') {
                 // comment
                 $offset = $match[0][1] + 3;
 
-                if (false !== ($end = strpos($this->html, '-->', $offset))) {
+                if (($end = strpos($this->html, '-->', $offset)) !== (false)) {
                     $result = array(
                         'type' => static::COMMENT,
                         'start' => $match[0][1],
@@ -375,7 +375,7 @@ class SimpleHtmlParser implements \Iterator
                 list($attrs, $offset) = $this->matchAttributes($offset);
                 preg_match('~\s*/?>~A', $this->html, $endMatch, 0, $offset);
 
-                $isClosingTag = '/' === $match[1][0];
+                $isClosingTag = $match[1][0] === '/';
 
                 $result = array(
                     'type' => $isClosingTag ? static::CLOSING_TAG : static::OPENING_TAG,
@@ -392,7 +392,7 @@ class SimpleHtmlParser implements \Iterator
                 $offset = $match[0][1] + 2;
                 $end = strpos($this->html, '>', $offset);
 
-                $result = false !== $end
+                $result = $end !== false
                     ? array(
                         'type' => static::OTHER,
                         'symbol' => $match[0][0][1],
@@ -434,7 +434,7 @@ class SimpleHtmlParser implements \Iterator
                 $offset += strlen($match[0]);
 
                 if ($offset < $this->length) {
-                    if ('"' === $this->html[$offset] || '\'' === $this->html[$offset]) {
+                    if ($this->html[$offset] === '"' || $this->html[$offset] === '\'') {
                         // quoted
                         if (preg_match('~"([^"]*+)"|\'([^\']*+)\'~A', $this->html, $match, 0, $offset)) {
                             $value = $match[isset($match[2]) ? 2 : 1];
@@ -481,10 +481,10 @@ class SimpleHtmlParser implements \Iterator
         $found = false;
 
         while ($element = $this->find(static::OTHER, null, 1024)) {
-            if ('!' === $element['symbol']) {
+            if ($element['symbol'] === '!') {
                 $content = substr($this->html, $element['start'] + 2, $element['end'] - $element['start'] - 3);
 
-                if (0 === strncasecmp('doctype', $content, 7)) {
+                if (strncasecmp('doctype', $content, 7) === 0) {
                     $element['content'] = $content;
                     $found = true;
                     break;
@@ -517,7 +517,7 @@ class SimpleHtmlParser implements \Iterator
                 break;
             } elseif (
                 isset($metaTag['attrs']['http-equiv'], $metaTag['attrs']['content'])
-                && 0 === strcasecmp($metaTag['attrs']['http-equiv'], 'content-type')
+                && strcasecmp($metaTag['attrs']['http-equiv'], 'content-type') === 0
             ) {
                 $found = true;
                 $pragma = true;
@@ -538,11 +538,11 @@ class SimpleHtmlParser implements \Iterator
             }
         }
         
-        if (false !== $encoding) {
+        if ($encoding !== false) {
             $encoding = strtoupper($encoding);
         }
 
-        if (false === $encoding || !isset(static::$supportedEncodingMap[$encoding])) {
+        if ($encoding === false || !isset(static::$supportedEncodingMap[$encoding])) {
             // no encoding has been specified or it is not supported
             $encoding = $this->fallbackEncoding;
         }
