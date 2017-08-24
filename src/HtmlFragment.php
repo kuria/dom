@@ -1,12 +1,7 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Kuria\Dom;
 
-/**
- * HTML fragment
- *
- * @author ShiraNai7 <shira.cz>
- */
 class HtmlFragment extends HtmlDocument
 {
     /**
@@ -17,12 +12,12 @@ class HtmlFragment extends HtmlDocument
      */
     protected $handleEncoding = false;
 
-    public function loadEmpty(array $properties = null)
+    function loadEmpty(array $properties = null): void
     {
-        return $this->loadString('', null, $properties);
+        $this->loadString('', null, $properties);
     }
 
-    protected function populate($content, $encoding = null)
+    protected function populate(string $content, ?string $encoding = null): void
     {
         if (!$encoding) {
             $encoding = static::INTERNAL_ENCODING;
@@ -43,7 +38,7 @@ HTML
         );
     }
 
-    public function save(\DOMNode $contextNode = null, $childrenOnly = false)
+    function save(\DOMNode $contextNode = null, bool $childrenOnly = false): string
     {
         if ($contextNode === null) {
             $contextNode = $this->getBody();
@@ -53,7 +48,7 @@ HTML
         return parent::save($contextNode, $childrenOnly);
     }
 
-    public function query($expression, \DOMNode $contextNode = null, $registerNodeNs = true)
+    function query(string $expression, \DOMNode $contextNode = null, bool $registerNodeNs = true): \DOMNodeList
     {
         // if no context node has been given, assume <body>
         if ($contextNode === null) {

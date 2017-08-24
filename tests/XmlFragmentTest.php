@@ -1,12 +1,12 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Kuria\Dom;
 
 class XmlFragmentTest extends DomContainerTest
 {
-    protected function initializeOptions()
+    protected function initializeOptions(): array
     {
-        return array(
+        return [
             'is_fragment' => true,
             'encoded_string_element_query' => '/item[@id="1"]/alias',
             'context_node_query' => '/item[@id="1"]',
@@ -18,10 +18,10 @@ class XmlFragmentTest extends DomContainerTest
             'prepend_child_target_query' => '.',
             'insert_after_target_query' => '/item[@id="1"]',
             'remove_all_target_query' => '/item[@id="2"]',
-        );
+        ];
     }
 
-    public function testEscape()
+    function testEscape()
     {
         $dom = $this->createContainer();
 
@@ -31,7 +31,7 @@ class XmlFragmentTest extends DomContainerTest
         );
     }
 
-    public function testGetRoot()
+    function testGetRoot()
     {
         /** @var XmlFragment $dom */
         $dom = $this->getContainer();
@@ -40,12 +40,12 @@ class XmlFragmentTest extends DomContainerTest
         $this->assertSame('root', $dom->getRoot()->tagName);
     }
 
-    protected function assertValidMinimalOutput($output, $encoding = DomContainer::INTERNAL_ENCODING)
+    protected function assertValidMinimalOutput(string $output, string $encoding = DomContainer::INTERNAL_ENCODING): void
     {
         $this->assertNotContains('<?xml', $output, '', true);
     }
 
-    protected function assertValidSampleOutput($output, $encoding = DomContainer::INTERNAL_ENCODING)
+    protected function assertValidSampleOutput(string $output, string $encoding = DomContainer::INTERNAL_ENCODING): void
     {
         $this->assertContains('<item id="1">', $output, '', true);
         $this->assertContains('<item id="2">', $output, '', true);
@@ -53,12 +53,12 @@ class XmlFragmentTest extends DomContainerTest
         $this->assertContains('<position>', $output, '', true);
     }
 
-    protected function assertValidEmptyOutput($output, $encoding = DomContainer::INTERNAL_ENCODING)
+    protected function assertValidEmptyOutput(string $output, string $encoding = DomContainer::INTERNAL_ENCODING): void
     {
         $this->assertSame('', trim($output));
     }
 
-    protected function assertValidOutputWithContextNode($output, $encoding = DomContainer::INTERNAL_ENCODING)
+    protected function assertValidOutputWithContextNode(string $output, string $encoding = DomContainer::INTERNAL_ENCODING): void
     {
         $this->assertNotContains('<?xml', $output, '', true);
         $this->assertNotContains('<item id="2">', $output, '', true);
@@ -67,7 +67,7 @@ class XmlFragmentTest extends DomContainerTest
         $this->assertContains('<position>', $output, '', true);
     }
 
-    protected function assertValidOutputWithContextNodeChildrenOnly($output, $encoding = DomContainer::INTERNAL_ENCODING)
+    protected function assertValidOutputWithContextNodeChildrenOnly(string $output, string $encoding = DomContainer::INTERNAL_ENCODING)
     {
         $this->assertNotContains('<?xml', $output, '', true);
         $this->assertNotContains('<item id="1">', $output, '', true);
@@ -81,7 +81,7 @@ class XmlFragmentTest extends DomContainerTest
         return new XmlFragment();
     }
 
-    protected function getSampleContent($encoding = DomContainer::INTERNAL_ENCODING)
+    protected function getSampleContent(string $encoding = DomContainer::INTERNAL_ENCODING): string
     {
         return <<<XML
 <item id="1">
@@ -96,7 +96,7 @@ class XmlFragmentTest extends DomContainerTest
 XML;
     }
 
-    protected function getInvalidSampleContent($encoding = DomContainer::INTERNAL_ENCODING)
+    protected function getInvalidSampleContent(string $encoding = DomContainer::INTERNAL_ENCODING): string
     {
         return <<<XML
 <item>

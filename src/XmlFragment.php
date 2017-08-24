@@ -1,20 +1,15 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Kuria\Dom;
 
-/**
- * XML fragment
- *
- * @author ShiraNai7 <shira.cz>
- */
 class XmlFragment extends XmlDocument
 {
-    public function loadEmpty(array $properties = null)
+    function loadEmpty(array $properties = null): void
     {
-        return $this->loadString('', null, $properties);
+        $this->loadString('', null, $properties);
     }
 
-    protected function populate($content, $encoding = null)
+    protected function populate(string $content, ?string $encoding = null): void
     {
         if (!$encoding) {
             $encoding = static::INTERNAL_ENCODING;
@@ -30,7 +25,7 @@ XML
         );
     }
 
-    public function save(\DOMNode $contextNode = null, $childrenOnly = false)
+    function save(\DOMNode $contextNode = null, bool $childrenOnly = false): string
     {
         if ($contextNode === null) {
             $contextNode = $this->getRoot();
@@ -40,7 +35,7 @@ XML
         return parent::save($contextNode, $childrenOnly);
     }
 
-    public function query($expression, \DOMNode $contextNode = null, $registerNodeNs = true)
+    function query(string $expression, \DOMNode $contextNode = null, bool $registerNodeNs = true): \DOMNodeList
     {
         // if no context node has been given, assume <root>
         if ($contextNode === null) {

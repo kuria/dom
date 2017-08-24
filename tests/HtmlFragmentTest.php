@@ -1,12 +1,12 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Kuria\Dom;
 
 class HtmlFragmentTest extends DomContainerTest
 {
-    protected function initializeOptions()
+    protected function initializeOptions(): array
     {
-        return array(
+        return [
             'is_fragment' => true,
             'encoded_string_element_query' => '//h1',
             'context_node_query' => '//ul[@id="bar"]',
@@ -18,10 +18,10 @@ class HtmlFragmentTest extends DomContainerTest
             'prepend_child_target_query' => '.',
             'insert_after_target_query' => '//ul[@id="foo"]',
             'remove_all_target_query' => '//ul[@id="bar"]',
-        );
+        ];
     }
 
-    public function testEscape()
+    function testEscape()
     {
         $dom = $this->createContainer();
 
@@ -31,7 +31,7 @@ class HtmlFragmentTest extends DomContainerTest
         );
     }
 
-    public function testGetHead()
+    function testGetHead()
     {
         /** @var HtmlFragment $dom */
         $dom = $this->getContainer();
@@ -40,7 +40,7 @@ class HtmlFragmentTest extends DomContainerTest
         $this->assertSame('head', $dom->getHead()->tagName);
     }
 
-    public function testGetBody()
+    function testGetBody()
     {
         /** @var HtmlFragment $dom */
         $dom = $this->getContainer();
@@ -49,7 +49,7 @@ class HtmlFragmentTest extends DomContainerTest
         $this->assertSame('body', $dom->getBody()->tagName);
     }
 
-    protected function assertValidMinimalOutput($output, $encoding = DomContainer::INTERNAL_ENCODING)
+    protected function assertValidMinimalOutput(string $output, string $encoding = DomContainer::INTERNAL_ENCODING): void
     {
         $this->assertNotContains('<!doctype', $output, '', true);
         $this->assertNotContains('<html>', $output, '', true);
@@ -58,7 +58,7 @@ class HtmlFragmentTest extends DomContainerTest
         $this->assertNotContains('<body>', $output, '', true);
     }
 
-    protected function assertValidSampleOutput($output, $encoding = DomContainer::INTERNAL_ENCODING)
+    protected function assertValidSampleOutput(string $output, string $encoding = DomContainer::INTERNAL_ENCODING): void
     {
         $this->assertContains('<h1>', $output, '', true);
         $this->assertContains('<p>', $output, '', true);
@@ -67,12 +67,12 @@ class HtmlFragmentTest extends DomContainerTest
         $this->assertContains('<li>', $output, '', true);
     }
 
-    protected function assertValidEmptyOutput($output, $encoding = DomContainer::INTERNAL_ENCODING)
+    protected function assertValidEmptyOutput(string $output, string $encoding = DomContainer::INTERNAL_ENCODING): void
     {
         $this->assertSame('', trim($output));
     }
 
-    protected function assertValidOutputWithContextNode($output, $encoding = DomContainer::INTERNAL_ENCODING)
+    protected function assertValidOutputWithContextNode(string $output, string $encoding = DomContainer::INTERNAL_ENCODING): void
     {
         $this->assertNotContains('<!doctype', $output, '', true);
         $this->assertNotContains('<html>', $output, '', true);
@@ -86,7 +86,7 @@ class HtmlFragmentTest extends DomContainerTest
         $this->assertContains('<li>', $output, '', true);
     }
 
-    protected function assertValidOutputWithContextNodeChildrenOnly($output, $encoding = DomContainer::INTERNAL_ENCODING)
+    protected function assertValidOutputWithContextNodeChildrenOnly(string $output, string $encoding = DomContainer::INTERNAL_ENCODING): void
     {
         $this->assertNotContains('<!doctype', $output, '', true);
         $this->assertNotContains('<html>', $output, '', true);
@@ -105,7 +105,7 @@ class HtmlFragmentTest extends DomContainerTest
         return new HtmlFragment();
     }
 
-    protected function getSampleContent($encoding = DomContainer::INTERNAL_ENCODING)
+    protected function getSampleContent(string $encoding = DomContainer::INTERNAL_ENCODING): string
     {
         return <<<HTML
 <h1>{$this->getEncodedTestString($encoding)}</h1>
@@ -124,7 +124,7 @@ class HtmlFragmentTest extends DomContainerTest
 HTML;
     }
 
-    protected function getInvalidSampleContent($encoding = DomContainer::INTERNAL_ENCODING)
+    protected function getInvalidSampleContent(string $encoding = DomContainer::INTERNAL_ENCODING): string
     {
         return <<<HTML
 <h1>{$this->getEncodedTestString($encoding)}</h1 <!-- the syntax error is here -->

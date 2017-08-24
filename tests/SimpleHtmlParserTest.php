@@ -1,10 +1,13 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Kuria\Dom;
 
-class SimpleHtmlParserTest extends \PHPUnit_Framework_TestCase
+use PHPUnit\Framework\AssertionFailedError;
+use PHPUnit\Framework\TestCase;
+
+class SimpleHtmlParserTest extends TestCase
 {
-    public function testBasicGetters()
+    function testBasicGetters()
     {
         $parser = new SimpleHtmlParser('abc');
 
@@ -12,164 +15,164 @@ class SimpleHtmlParserTest extends \PHPUnit_Framework_TestCase
         $this->assertSame('abc', $parser->getHtml());
     }
 
-    public function testMatchComment()
+    function testMatchComment()
     {
-        $this->matchAndAssert('<!-- foo bar -->', array(
+        $this->matchAndAssert('<!-- foo bar -->', [
             'type' => SimpleHtmlParser::COMMENT,
             'start' => 0,
             'end' => 16,
-        ));
+        ]);
     }
 
-    public function testMatchOpeningTag()
+    function testMatchOpeningTag()
     {
-        $this->matchAndAssert('<P>', array(
+        $this->matchAndAssert('<P>', [
             'type' => SimpleHtmlParser::OPENING_TAG,
             'start' => 0,
             'end' => 3,
             'name' => 'p',
-            'attrs' => array(),
-        ));
+            'attrs' => [],
+        ]);
     }
 
-    public function testMatchOpeningTagWithSpecialCharacters()
+    function testMatchOpeningTagWithSpecialCharacters()
     {
         $html = '<Foo:barž>';
 
-        $this->matchAndAssert($html, array(
+        $this->matchAndAssert($html, [
             'type' => SimpleHtmlParser::OPENING_TAG,
             'start' => 0,
             'end' => strlen($html),
             'name' => 'Foo:barž',
-            'attrs' => array(),
-        ));
+            'attrs' => [],
+        ]);
     }
 
-    public function testMatchOpeningTagWithAttributes()
+    function testMatchOpeningTagWithAttributes()
     {
-        $this->matchAndAssert('<A HREF="http://example.com?FOO" id="foo"  class=link >', array(
+        $this->matchAndAssert('<A HREF="http://example.com?FOO" id="foo"  class=link >', [
             'type' => SimpleHtmlParser::OPENING_TAG,
             'start' => 0,
             'end' => 55,
             'name' => 'a',
-            'attrs' => array('href' => 'http://example.com?FOO', 'id' => 'foo', 'class' => 'link'),
-        ));
+            'attrs' => ['href' => 'http://example.com?FOO', 'id' => 'foo', 'class' => 'link'],
+        ]);
     }
 
-    public function testMatchSelfClosingTag()
+    function testMatchSelfClosingTag()
     {
-        $this->matchAndAssert('<hr />', array(
+        $this->matchAndAssert('<hr />', [
             'type' => SimpleHtmlParser::OPENING_TAG,
             'start' => 0,
             'end' => 6,
             'name' => 'hr',
-            'attrs' => array(),
-        ));
+            'attrs' => [],
+        ]);
     }
 
-    public function testMatchSelfClosingTagWithAttributes()
+    function testMatchSelfClosingTagWithAttributes()
     {
-        $this->matchAndAssert('<hr data-lorem="ipsum" />', array(
+        $this->matchAndAssert('<hr data-lorem="ipsum" />', [
             'type' => SimpleHtmlParser::OPENING_TAG,
             'start' => 0,
             'end' => 25,
             'name' => 'hr',
-            'attrs' => array('data-lorem' => 'ipsum'),
-        ));
+            'attrs' => ['data-lorem' => 'ipsum'],
+        ]);
     }
 
-    public function testMatchUnterminatedOpeningTag()
+    function testMatchUnterminatedOpeningTag()
     {
-        $this->matchAndAssert('<a href="http://example.com/"', array(
+        $this->matchAndAssert('<a href="http://example.com/"', [
             'type' => SimpleHtmlParser::OPENING_TAG,
             'start' => 0,
             'end' => 29,
             'name' => 'a',
-            'attrs' => array('href' => 'http://example.com/'),
-        ));
+            'attrs' => ['href' => 'http://example.com/'],
+        ]);
     }
 
-    public function testMatchUnterminatedOpeningTagFollowedByAnotherElement()
+    function testMatchUnterminatedOpeningTagFollowedByAnotherElement()
     {
-        $this->matchAndAssert('<a href="http://example.com/"<br id="foo">', array(
+        $this->matchAndAssert('<a href="http://example.com/"<br id="foo">', [
             'type' => SimpleHtmlParser::OPENING_TAG,
             'start' => 0,
             'end' => 42,
             'name' => 'a',
-            'attrs' => array('href' => 'http://example.com/', 'id' => 'foo', '<br' => true),
-        ));
+            'attrs' => ['href' => 'http://example.com/', 'id' => 'foo', '<br' => true],
+        ]);
     }
 
-    public function testMatchClosingTag()
+    function testMatchClosingTag()
     {
-        $this->matchAndAssert('</A>', array(
+        $this->matchAndAssert('</A>', [
             'type' => SimpleHtmlParser::CLOSING_TAG,
             'start' => 0,
             'end' => 4,
             'name' => 'a',
-        ));
+        ]);
     }
 
-    public function testMatchClosingTagWithSpecialCharacters()
+    function testMatchClosingTagWithSpecialCharacters()
     {
         $html = '</Foo-barž>';
 
-        $this->matchAndAssert($html, array(
+        $this->matchAndAssert($html, [
             'type' => SimpleHtmlParser::CLOSING_TAG,
             'start' => 0,
             'end' => strlen($html),
             'name' => 'Foo-barž',
-        ));
+        ]);
     }
 
-    public function testMatchClosingTagWithAttributes()
+    function testMatchClosingTagWithAttributes()
     {
-        $this->matchAndAssert('</A id="nonsense">', array(
+        $this->matchAndAssert('</A id="nonsense">', [
             'type' => SimpleHtmlParser::CLOSING_TAG,
             'start' => 0,
             'end' => 18,
             'name' => 'a',
-        ));
+        ]);
     }
 
-    public function testMatchOther()
+    function testMatchOther()
     {
-        $this->matchAndAssert('<!doctype html>', array(
+        $this->matchAndAssert('<!doctype html>', [
             'type' => SimpleHtmlParser::OTHER,
             'start' => 0,
             'end' => 15,
             'symbol' => '!',
-        ));
+        ]);
         
-        $this->matchAndAssert('<?= echo "Hi"; ?>', array(
+        $this->matchAndAssert('<?= echo "Hi"; ?>', [
             'type' => SimpleHtmlParser::OTHER,
             'start' => 0,
             'end' => 17,
             'symbol' => '?',
-        ));
+        ]);
     }
 
-    public function testMatchInvalid()
+    function testMatchInvalid()
     {
         $this->matchAndAssertFailure('<');
         $this->matchAndAssertFailure('< foo');
         $this->matchAndAssertFailure('<+bar');
         $this->matchAndAssertFailure('<#');
         
-        $this->matchAndAssert('<?', array(
+        $this->matchAndAssert('<?', [
             'type' => SimpleHtmlParser::INVALID,
             'start' => 0,
             'end' => 2,
-        ));
+        ]);
 
-        $this->matchAndAssert('<!', array(
+        $this->matchAndAssert('<!', [
             'type' => SimpleHtmlParser::INVALID,
             'start' => 0,
             'end' => 2,
-        ));
+        ]);
     }
 
-    public function testFind()
+    function testFind()
     {
         $html = <<<HTML
 <!doctype html>
@@ -181,25 +184,25 @@ HTML;
 
         $parser = new SimpleHtmlParser($html);
 
-        $this->assertElement($parser->find(SimpleHtmlParser::OPENING_TAG, 'title'), array(
+        $this->assertElement($parser->find(SimpleHtmlParser::OPENING_TAG, 'title'), [
             'type' => SimpleHtmlParser::OPENING_TAG,
             'start' => 84,
             'end' => 91,
             'name' => 'title',
-        ));
+        ]);
 
         // find should work with and alter the iterator's position
         // finding any opening tag after the title should yield the second meta tag
-        $this->assertElement($parser->find(SimpleHtmlParser::OPENING_TAG), array(
+        $this->assertElement($parser->find(SimpleHtmlParser::OPENING_TAG), [
             'type' => SimpleHtmlParser::OPENING_TAG,
             'start' => 111,
             'end' => 143,
             'name' => 'meta',
-            'attrs' => array('name' => 'bar', 'value' => 'second'),
-        ));
+            'attrs' => ['name' => 'bar', 'value' => 'second'],
+        ]);
     }
 
-    public function testFindNonTags()
+    function testFindNonTags()
     {
         $html = <<<HTML
 <!doctype html>
@@ -209,21 +212,21 @@ HTML;
 
         $parser = new SimpleHtmlParser($html);
 
-        $this->assertElement($parser->find(SimpleHtmlParser::OTHER), array(
+        $this->assertElement($parser->find(SimpleHtmlParser::OTHER), [
             'type' => SimpleHtmlParser::OTHER,
             'start' => 0,
             'end' => 15,
             'symbol' => '!',
-        ));
+        ]);
 
-        $this->assertElement($parser->find(SimpleHtmlParser::COMMENT), array(
+        $this->assertElement($parser->find(SimpleHtmlParser::COMMENT), [
             'type' => SimpleHtmlParser::COMMENT,
             'start' => 43,
             'end' => 59,
-        ));
+        ]);
     }
 
-    public function testFindStopOffsetMidElement()
+    function testFindStopOffsetMidElement()
     {
         $html = <<<HTML
 <!-- foo bar -->
@@ -232,10 +235,10 @@ HTML;
 
         $parser = new SimpleHtmlParser($html);
 
-        $this->assertFalse($parser->find(SimpleHtmlParser::OPENING_TAG, 'br', 10));
+        $this->assertNull($parser->find(SimpleHtmlParser::OPENING_TAG, 'br', 10));
     }
 
-    public function testFindStopOffsetRightAfterElement()
+    function testFindStopOffsetRightAfterElement()
     {
         $html = <<<HTML
 <!-- foo bar -->
@@ -244,10 +247,10 @@ HTML;
 
         $parser = new SimpleHtmlParser($html);
 
-        $this->assertFalse($parser->find(SimpleHtmlParser::OPENING_TAG, 'br', 16));
+        $this->assertNull($parser->find(SimpleHtmlParser::OPENING_TAG, 'br', 16));
     }
 
-    public function testFindStopOffsetRightBetweenElements()
+    function testFindStopOffsetRightBetweenElements()
     {
         $html = <<<HTML
 <!-- foo bar -->
@@ -258,13 +261,13 @@ HTML;
 
         // find() can match elements after the stop offset in this case
         // this behavior is expected and documented
-        $this->assertElement($parser->find(SimpleHtmlParser::OPENING_TAG, 'br', 28), array(
+        $this->assertElement($parser->find(SimpleHtmlParser::OPENING_TAG, 'br', 28), [
             'name' => 'br',
             'start' => 43,
-        ));
+        ]);
     }
 
-    public function testGetHtmlWithElement()
+    function testGetHtmlWithElement()
     {
         $html = <<<HTML
 <!-- test link -->
@@ -276,22 +279,21 @@ HTML;
 
         $element = $parser->find(SimpleHtmlParser::OPENING_TAG, 'a');
 
-        $this->assertElement($element, array('name' => 'a'));
+        $this->assertElement($element, ['name' => 'a']);
         $this->assertSame('<a href="http://example.com/">', $parser->getHtml($element));
     }
 
-    /**
-     * @expectedException        LogicException
-     * @expectedExceptionMessage OPENING_TAG or CLOSING_TAG
-     */
-    public function testExceptionFromFindOnTagNameSpecifiedForNonTagType()
+    function testExceptionFromFindOnTagNameSpecifiedForNonTagType()
     {
         $parser = new SimpleHtmlParser('');
+
+        $this->expectException(\LogicException::class);
+        $this->expectExceptionMessage('OPENING_TAG or CLOSING_TAG');
 
         $parser->find(SimpleHtmlParser::COMMENT, 'foo');
     }
 
-    public function testIterator()
+    function testIterator()
     {
         $html = <<<HTML
 <!doctype html>
@@ -305,20 +307,22 @@ HTML;
 </p>
 
 Dolor sit amet
+<script type="text/javascript"> // unclosed on purpose
 HTML;
 
-        $expected = array(
-            array('type' => SimpleHtmlParser::OTHER, 'start' => 0, 'end' => 15, 'symbol' => '!'),
-            array('type' => SimpleHtmlParser::COMMENT, 'start' => 16, 'end' => 32),
-            array('type' => SimpleHtmlParser::OPENING_TAG, 'start' => 33, 'end' => 40, 'name' => 'title', 'attrs' => array()),
-            array('type' => SimpleHtmlParser::CLOSING_TAG, 'start' => 51, 'end' => 59, 'name' => 'title'),
-            array('type' => SimpleHtmlParser::OPENING_TAG, 'start' => 60, 'end' => 91, 'name' => 'script', 'attrs' => array('type' => 'text/javascript')),
-            array('type' => SimpleHtmlParser::CLOSING_TAG, 'start' => 177, 'end' => 186, 'name' => 'script'),
-            array('type' => SimpleHtmlParser::OPENING_TAG, 'start' => 187, 'end' => 217, 'name' => 'p', 'attrs' => array('<!--' => true, 'invalid' => true, 'on' =>  true, 'purpose' => true, '--' => true)),
-            array('type' => SimpleHtmlParser::OPENING_TAG, 'start' => 222, 'end' => 251, 'name' => 'a', 'attrs' => array('href' => 'http://example.com')),
-            array('type' => SimpleHtmlParser::CLOSING_TAG, 'start' => 261, 'end' => 265, 'name' => 'a'),
-            array('type' => SimpleHtmlParser::CLOSING_TAG, 'start' => 266, 'end' => 270, 'name' => 'p'),
-        );
+        $expected = [
+            ['type' => SimpleHtmlParser::OTHER, 'start' => 0, 'end' => 15, 'symbol' => '!'],
+            ['type' => SimpleHtmlParser::COMMENT, 'start' => 16, 'end' => 32],
+            ['type' => SimpleHtmlParser::OPENING_TAG, 'start' => 33, 'end' => 40, 'name' => 'title', 'attrs' => []],
+            ['type' => SimpleHtmlParser::CLOSING_TAG, 'start' => 51, 'end' => 59, 'name' => 'title'],
+            ['type' => SimpleHtmlParser::OPENING_TAG, 'start' => 60, 'end' => 91, 'name' => 'script', 'attrs' => ['type' => 'text/javascript']],
+            ['type' => SimpleHtmlParser::CLOSING_TAG, 'start' => 177, 'end' => 186, 'name' => 'script'],
+            ['type' => SimpleHtmlParser::OPENING_TAG, 'start' => 187, 'end' => 217, 'name' => 'p', 'attrs' => ['<!--' => true, 'invalid' => true, 'on' =>  true, 'purpose' => true, '--' => true]],
+            ['type' => SimpleHtmlParser::OPENING_TAG, 'start' => 222, 'end' => 251, 'name' => 'a', 'attrs' => ['href' => 'http://example.com']],
+            ['type' => SimpleHtmlParser::CLOSING_TAG, 'start' => 261, 'end' => 265, 'name' => 'a'],
+            ['type' => SimpleHtmlParser::CLOSING_TAG, 'start' => 266, 'end' => 270, 'name' => 'p'],
+            ['type' => SimpleHtmlParser::OPENING_TAG, 'start' => 287, 'end' => 318, 'name' => 'script'],
+        ];
 
         $parser = new SimpleHtmlParser($html);
 
@@ -330,27 +334,31 @@ HTML;
             try {
                 $this->assertElement($element, $expected[$index]);
             } catch (\Exception $e) {
-                throw new \PHPUnit_Framework_AssertionFailedError(sprintf('Failed to assert validity of element at index "%s"', $index), 0, $e);
+                throw new AssertionFailedError(sprintf('Failed to assert validity of element at index "%s"', $index), 0, $e);
             }
             $this->assertSame($element['end'], $parser->getOffset());
         }
+
+        $this->assertFalse($parser->valid());
+        $parser->next();
+        $this->assertNull($parser->current());
     }
 
-    public function testEmptyIterator()
+    function testEmptyIterator()
     {
         $parser = new SimpleHtmlParser('No tags here, sorry.. :)');
 
         for ($i = 0; $i < 2; ++$i) {
             $this->assertSame(0, $parser->getOffset());
             $this->assertNull($parser->key());
-            $this->assertFalse($parser->current());
+            $this->assertNull($parser->current());
             $this->assertFalse($parser->valid());
 
             $parser->rewind();
         }
     }
 
-    public function testStates()
+    function testStates()
     {
         $html = <<<HTML
 <!doctype html>
@@ -362,46 +370,46 @@ HTML;
 
         // initial state
         $this->assertSame(0, $parser->getOffset());
-        $this->assertSame(0, $parser->getStateStackSize());
+        $this->assertSame(0, $parser->countStates());
 
         $parser->pushState();
-        $this->assertSame(1, $parser->getStateStackSize());
+        $this->assertSame(1, $parser->countStates());
 
         $parser->next();
 
         // doctype
         $this->assertSame(15, $parser->getOffset());
-        $this->assertElement($parser->current(), array(
+        $this->assertElement($parser->current(), [
             'type' => SimpleHtmlParser::OTHER,
             'symbol' => '!',
-        ));
+        ]);
 
         $parser->pushState();
-        $this->assertSame(2, $parser->getStateStackSize());
+        $this->assertSame(2, $parser->countStates());
 
         $parser->next();
 
         // <title>
         $this->assertSame(23, $parser->getOffset());
-        $this->assertElement($parser->current(), array(
+        $this->assertElement($parser->current(), [
             'type' => SimpleHtmlParser::OPENING_TAG,
             'name' => 'title',
-        ));
+        ]);
 
         $parser->pushState();
-        $this->assertSame(3, $parser->getStateStackSize());
+        $this->assertSame(3, $parser->countStates());
         
         $parser->next();
         
         // </title>
         $this->assertSame(42, $parser->getOffset());
-        $this->assertElement($parser->current(), array(
+        $this->assertElement($parser->current(), [
             'type' => SimpleHtmlParser::CLOSING_TAG,
             'name' => 'title',
-        ));
+        ]);
         
         $parser->pushState();
-        $this->assertSame(4, $parser->getStateStackSize());
+        $this->assertSame(4, $parser->countStates());
         
         $parser->find(SimpleHtmlParser::CLOSING_TAG, 'h1');
         
@@ -409,79 +417,77 @@ HTML;
         $this->assertSame(66, $parser->getOffset());
 
         $parser->revertState();
-        $this->assertSame(3, $parser->getStateStackSize());
+        $this->assertSame(3, $parser->countStates());
 
         // reverted back to </title>
         $this->assertSame(42, $parser->getOffset());
-        $this->assertElement($parser->current(), array(
+        $this->assertElement($parser->current(), [
             'type' => SimpleHtmlParser::CLOSING_TAG,
             'name' => 'title',
-        ));
+        ]);
 
         $parser->popState(); // pop state @ <title>
-        $this->assertSame(2, $parser->getStateStackSize());
+        $this->assertSame(2, $parser->countStates());
         $this->assertSame(42, $parser->getOffset()); // popping sould not affect offset
 
         $parser->revertState();
-        $this->assertSame(1, $parser->getStateStackSize());
+        $this->assertSame(1, $parser->countStates());
 
         // reverted to doctype
         $this->assertSame(15, $parser->getOffset());
-        $this->assertElement($parser->current(), array(
+        $this->assertElement($parser->current(), [
             'type' => SimpleHtmlParser::OTHER,
             'symbol' => '!',
-        ));
+        ]);
 
         $parser->revertState();
-        $this->assertSame(0, $parser->getStateStackSize());
+        $this->assertSame(0, $parser->countStates());
 
         // reverted to the beginning
         $this->assertSame(0, $parser->getOffset());
     }
 
-    public function testClearStates()
+    function testClearStates()
     {
         $parser = new SimpleHtmlParser('');
 
-        $this->assertSame(0, $parser->getStateStackSize());
+        $this->assertSame(0, $parser->countStates());
 
         for ($i = 1; $i <= 3; ++$i) {
             $parser->pushState();
-            $this->assertSame($i, $parser->getStateStackSize());
+            $this->assertSame($i, $parser->countStates());
         }
 
         $parser->clearStates();
 
-        $this->assertSame(0, $parser->getStateStackSize());
+        $this->assertSame(0, $parser->countStates());
     }
 
-    /**
-     * @expectedException        LogicException
-     * @expectedExceptionMessage The state stack is empty
-     */
-    public function testExceptionOnPopStateWithEmptyStack()
+    function testExceptionOnPopStateWithEmptyStack()
     {
         $parser = new SimpleHtmlParser('');
 
-        $this->assertSame(0, $parser->getStateStackSize());
+        $this->assertSame(0, $parser->countStates());
+
+        $this->expectException(\LogicException::class);
+        $this->expectExceptionMessage('The state stack is empty');
 
         $parser->popState();
     }
 
-    /**
-     * @expectedException        LogicException
-     * @expectedExceptionMessage The state stack is empty
-     */
-    public function testExceptionOnRevertStateWithEmptyStack()
+    function testExceptionOnRevertStateWithEmptyStack()
     {
         $parser = new SimpleHtmlParser('');
 
-        $this->assertSame(0, $parser->getStateStackSize());
+        $this->assertSame(0, $parser->countStates());
+
+        $this->expectException(\LogicException::class);
+        $this->expectExceptionMessage('The state stack is empty');
 
         $parser->revertState();
     }
 
-    public function testEscape()
+    function testEscape()
     {
         $parser = new SimpleHtmlParser('');
 
@@ -491,7 +497,7 @@ HTML;
         );
     }
 
-    public function testGetDoctype()
+    function testGetDoctype()
     {
         $html = <<<HTML
 <!-- foo bar -->
@@ -500,15 +506,15 @@ HTML;
 
         $parser = new SimpleHtmlParser($html);
 
-        $this->assertElement($parser->getDoctypeElement(), array(
+        $this->assertElement($parser->getDoctypeElement(), [
             'type' => SimpleHtmlParser::OTHER,
             'start' => 17,
             'end' => 32,
             'content' => 'DOCTYPE html',
-        ));
+        ]);
     }
 
-    public function testGetDoctypeNotFound()
+    function testGetDoctypeNotFound()
     {
         $html = <<<HTML
 <!-- foo bar -->
@@ -520,7 +526,7 @@ HTML;
         $this->assertNull($parser->getDoctypeElement());
     }
 
-    public function testEncodingDefaultFallback()
+    function testEncodingDefaultFallback()
     {
         $html = <<<HTML
 <!doctype html>
@@ -533,7 +539,7 @@ HTML;
         $this->assertNull($parser->getEncodingTag());
     }
 
-    public function testEncodingSpecifiedFallback()
+    function testEncodingSpecifiedFallback()
     {
         $html = <<<HTML
 <!doctype html>
@@ -548,18 +554,17 @@ HTML;
         $this->assertSame('ISO-8859-15', $parser->getEncoding());
     }
 
-    /**
-     * @expectedException        InvalidArgumentException
-     * @expectedExceptionMessage Unsupported fallback encoding
-     */
-    public function testExceptionOnUnsupportedFallbackEncoding()
+    function testExceptionOnUnsupportedFallbackEncoding()
     {
         $parser = new SimpleHtmlParser('');
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Unsupported fallback encoding');
 
         $parser->setFallbackEncoding('unknown');
     }
 
-    public function testEncodingMetaCharset()
+    function testEncodingMetaCharset()
     {
         $html = <<<HTML
 <!doctype html>
@@ -570,16 +575,16 @@ HTML;
         $parser = new SimpleHtmlParser($html);
 
         $this->assertSame('WIN-1251', $parser->getEncoding());
-        $this->assertElement($parser->getEncodingTag(), array(
+        $this->assertElement($parser->getEncodingTag(), [
             'type' => SimpleHtmlParser::OPENING_TAG,
             'start' => 16,
             'end' => 41,
             'name' => 'meta',
-            'attrs' => array('charset' => 'WIN-1251'),
-        ));
+            'attrs' => ['charset' => 'WIN-1251'],
+        ]);
     }
 
-    public function testEncodingMetaHttpEquiv()
+    function testEncodingMetaHttpEquiv()
     {
         $html = <<<HTML
 <!doctype html>
@@ -590,16 +595,16 @@ HTML;
         $parser = new SimpleHtmlParser($html);
 
         $this->assertSame('WIN-1251', $parser->getEncoding());
-        $this->assertElement($parser->getEncodingTag(), array(
+        $this->assertElement($parser->getEncodingTag(), [
             'type' => SimpleHtmlParser::OPENING_TAG,
             'start' => 16,
             'end' => 86,
             'name' => 'meta',
-            'attrs' => array('http-equiv' => 'content-type', 'content' => 'text/html; charset=WIN-1251'),
-        ));
+            'attrs' => ['http-equiv' => 'content-type', 'content' => 'text/html; charset=WIN-1251'],
+        ]);
     }
 
-    public function testEncodingDetectionDoesNotAlterState()
+    function testEncodingDetectionDoesNotAlterState()
     {
         $html = <<<HTML
 <!doctype html>
@@ -610,48 +615,37 @@ HTML;
 
         $this->assertElement($parser->find(SimpleHtmlParser::OPENING_TAG, 'title'));
         $this->assertSame(23, $parser->getOffset());
-        $this->assertSame(0, $parser->getStateStackSize());
+        $this->assertSame(0, $parser->countStates());
 
         $this->assertSame('UTF-8', $parser->getEncoding());
         $this->assertNull($parser->getEncodingTag());
 
         $this->assertElement($parser->current());
         $this->assertSame(23, $parser->getOffset());
-        $this->assertSame(0, $parser->getStateStackSize());
+        $this->assertSame(0, $parser->countStates());
     }
 
-    /**
-     * @param string $html
-     * @param array  $expectedKeys
-     */
-    private function matchAndAssert($html, array $expectedKeys)
+    private function matchAndAssert(string $html, array $expectedKeys): void
     {
         $parser = new SimpleHtmlParser($html);
 
         $this->assertElement($parser->current(), $expectedKeys);
     }
 
-    /**
-     * @param string $html
-     */
-    private function matchAndAssertFailure($html)
+    private function matchAndAssertFailure(string $html): void
     {
         $parser = new SimpleHtmlParser($html);
 
-        $this->assertFalse($parser->current());
+        $this->assertNull($parser->current());
     }
 
-    /**
-     * @param array $element
-     * @param array $expectedKeys
-     */
-    private function assertElement($element, array $expectedKeys = array())
+    private function assertElement($element, array $expectedKeys = []): void
     {
         $this->assertInternalType('array', $element);
         $this->assertArrayHasKey('type', $element);
 
         // check type and keys
-        $keys = array('type', 'start', 'end');
+        $keys = ['type', 'start', 'end'];
 
         switch ($element['type']) {
             case SimpleHtmlParser::COMMENT:

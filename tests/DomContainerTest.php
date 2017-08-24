@@ -1,19 +1,22 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Kuria\Dom;
 
-abstract class DomContainerTest extends \PHPUnit_Framework_TestCase
+use PHPUnit\Framework\Error\Warning;
+use PHPUnit\Framework\TestCase;
+
+abstract class DomContainerTest extends TestCase
 {
     /** @var array|null */
     private $options;
 
-    protected function getOption($name)
+    protected function getOption(string $name)
     {
         if ($this->options === null) {
-            $this->options = $this->initializeOptions() + array(
+            $this->options = $this->initializeOptions() + [
                 'is_fragment' => false,
                 'custom_encoding' => 'ISO-8859-15',
-            );
+            ];
         }
 
         if (!isset($this->options[$name])) {
@@ -23,31 +26,32 @@ abstract class DomContainerTest extends \PHPUnit_Framework_TestCase
         return $this->options[$name];
     }
     
-    /**
-     * @return array
-     */
-    abstract protected function initializeOptions();
+    abstract protected function initializeOptions(): array;
 
-    /**
-     * @return DomContainer
-     */
-    public function testConfiguration()
+    function testConfiguration()
     {
         $dom = $this->createContainer();
 
         // defaults
-        $this->assertFalse($dom->getIgnoreErrors());
+        $this->assertFalse($dom->isIgnoringErrors());
         $this->assertSame(0, $dom->getLibxmlFlags());
 
-        $this->assertTrue($dom->setIgnoreErrors(true)->getIgnoreErrors());
-        $this->assertSame(LIBXML_NOBLANKS, $dom->setLibxmlFlags(LIBXML_NOBLANKS)->getLibxmlFlags());
-        $this->assertSame(LIBXML_NOBLANKS | LIBXML_NOCDATA, $dom->setLibxmlFlags(LIBXML_NOCDATA)->getLibxmlFlags());
-        $this->assertSame(LIBXML_NOBLANKS, $dom->setLibxmlFlags(LIBXML_NOBLANKS, false)->getLibxmlFlags());
+        $dom->setIgnoreErrors(true);
+        $dom->setLibxmlFlags(LIBXML_NOBLANKS);
 
-        return $dom;
+        $this->assertTrue($dom->isIgnoringErrors());
+        $this->assertSame(LIBXML_NOBLANKS, $dom->getLibxmlFlags());
+
+        $dom->setLibxmlFlags(LIBXML_NOCDATA);
+
+        $this->assertSame(LIBXML_NOBLANKS | LIBXML_NOCDATA, $dom->getLibxmlFlags());
+
+        $dom->setLibxmlFlags(LIBXML_NOBLANKS, false);
+
+        $this->assertSame(LIBXML_NOBLANKS, $dom->getLibxmlFlags());
     }
 
-    public function testAutomaticLoadEmptyOnUninitializedDocument()
+    function testAutomaticLoadEmptyOnUninitializedDocument()
     {
         $dom = $this->createContainer();
 
@@ -63,7 +67,7 @@ abstract class DomContainerTest extends \PHPUnit_Framework_TestCase
         $this->assertValidEmptyOutput($output);
     }
 
-    public function testLoadEmpty()
+    function testLoadEmpty()
     {
         $dom = $this->createContainer();
 
@@ -76,7 +80,7 @@ abstract class DomContainerTest extends \PHPUnit_Framework_TestCase
         $this->assertValidEmptyOutput($output);
     }
 
-    public function testLoadString()
+    function testLoadString()
     {
         $dom = $this->createContainer();
         $dom->loadString($this->getSampleContent());
@@ -84,23 +88,23 @@ abstract class DomContainerTest extends \PHPUnit_Framework_TestCase
         $this->assertValidEncodedTestString($dom);
     }
 
-    public function testLoadStringProperties()
+    function testLoadStringProperties()
     {
         $defaultDom = new \DOMDocument();
         $this->assertFalse($defaultDom->resolveExternals);
         $this->assertFalse($defaultDom->recover);
 
         $dom = $this->createContainer();
-        $dom->loadString($this->getSampleContent(), null, array(
+        $dom->loadString($this->getSampleContent(), null, [
             'resolveExternals' => true,
             'recover' => true,
-        ));
+        ]);
 
         $this->assertTrue($dom->getDocument()->resolveExternals);
         $this->assertTrue($dom->getDocument()->recover);
     }
 
-    public function testLoadStringNonUtf8()
+    function testLoadStringNonUtf8()
     {
         $encoding = $this->getOption('custom_encoding');
 
@@ -113,7 +117,7 @@ abstract class DomContainerTest extends \PHPUnit_Framework_TestCase
         $this->assertValidEncodedTestString($dom);
     }
 
-    public function testLoadDocument()
+    function testLoadDocument()
     {
         $dom = $this->createContainer();
         
@@ -124,17 +128,17 @@ abstract class DomContainerTest extends \PHPUnit_Framework_TestCase
         $this->assertValidEncodedTestString($dom);
     }
 
-    /**
-     * @expectedException        PHPUnit_Framework_Error_Warning
-     * @expectedExceptionMessage DOMDocument
-     */
-    public function testIgnoreErrorsDisabled()
+    function testIgnoreErrorsDisabled()
     {
         $dom = $this->createContainer();
+
+        $this->expectException(Warning::class);
+        $this->expectExceptionMessage('DOMDocument::');
+
         $dom->loadString($this->getInvalidSampleContent());
     }
 
-    public function testIgnoreErrorsEnabled()
+    function testIgnoreErrorsEnabled()
     {
         $dom = $this->createContainer();
         $dom->setIgnoreErrors(true);
@@ -143,9 +147,9 @@ abstract class DomContainerTest extends \PHPUnit_Framework_TestCase
         $this->assertTrue($dom->isLoaded());
     }
 
-    abstract public function testEscape();
+    abstract function testEscape();
 
-    public function testSave()
+    function testSave()
     {
         $dom = $this->getContainer();
         $context = $this->getContextNode($dom);
@@ -158,7 +162,7 @@ abstract class DomContainerTest extends \PHPUnit_Framework_TestCase
         $this->assertValidOutputWithContextNodeChildrenOnly($dom->save($context, true));
     }
 
-    public function testEncoding()
+    function testEncoding()
     {
         $dom = $this->getContainer($this->getOption('custom_encoding'));
         $output = $dom->save();
@@ -179,45 +183,30 @@ abstract class DomContainerTest extends \PHPUnit_Framework_TestCase
      * Assert that the output contains the required base parts
      *
      * (Does not apply to partial output with a context node.)
-     *
-     * @param string $output
-     * @param string $encoding
      */
-    abstract protected function assertValidMinimalOutput($output, $encoding = DomContainer::INTERNAL_ENCODING);
+    abstract protected function assertValidMinimalOutput(string $output, string $encoding = DomContainer::INTERNAL_ENCODING): void;
 
     /**
      * Assert that the output contains the sample parts
-     *
-     * @param string $output
-     * @param string $encoding
      */
-    abstract protected function assertValidSampleOutput($output, $encoding = DomContainer::INTERNAL_ENCODING);
+    abstract protected function assertValidSampleOutput(string $output, string $encoding = DomContainer::INTERNAL_ENCODING): void;
 
     /**
      * Assert that the output contains the default parts loaded by loadEmpty()
-     *
-     * @param string $output
-     * @param string $encoding
      */
-    abstract protected function assertValidEmptyOutput($output, $encoding = DomContainer::INTERNAL_ENCODING);
+    abstract protected function assertValidEmptyOutput(string $output, string $encoding = DomContainer::INTERNAL_ENCODING): void;
 
     /**
      * Assert that the output contains only the context node and its children
-     *
-     * @param string $output
-     * @param string $encoding
      */
-    abstract protected function assertValidOutputWithContextNode($output, $encoding = DomContainer::INTERNAL_ENCODING);
+    abstract protected function assertValidOutputWithContextNode(string $output, string $encoding = DomContainer::INTERNAL_ENCODING): void;
 
     /**
      * Assert that the output contains only children of the context node
-     *
-     * @param string $output
-     * @param string $encoding
      */
-    abstract protected function assertValidOutputWithContextNodeChildrenOnly($output, $encoding = DomContainer::INTERNAL_ENCODING);
+    abstract protected function assertValidOutputWithContextNodeChildrenOnly(string $output, string $encoding = DomContainer::INTERNAL_ENCODING);
 
-    public function testQuery()
+    function testQuery()
     {
         $dom = $this->getContainer();
 
@@ -230,7 +219,7 @@ abstract class DomContainerTest extends \PHPUnit_Framework_TestCase
         $this->assertSame($this->getOption('context_query.expected_results'), $result->length);
     }
 
-    public function testQueryOne()
+    function testQueryOne()
     {
         $dom = $this->getContainer();
 
@@ -241,16 +230,15 @@ abstract class DomContainerTest extends \PHPUnit_Framework_TestCase
         $this->assertInstanceOf('DOMNode', $result);
     }
 
-    /**
-     * @expectedException        RuntimeException
-     * @expectedExceptionMessage Error while evaluating XPath query
-     */
-    public function testExceptionOnInvalidQuery()
+    function testExceptionOnInvalidQuery()
     {
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('Error while evaluating XPath query');
+
         $this->getContainer()->query('invalid ^ 123 456 query / - ... blah blah O_o');
     }
 
-    public function testClear()
+    function testClear()
     {
         $dom = $this->getContainer();
 
@@ -259,7 +247,7 @@ abstract class DomContainerTest extends \PHPUnit_Framework_TestCase
         $this->assertFalse($dom->isLoaded());
     }
 
-    public function testContainsAndRemove()
+    function testContainsAndRemove()
     {
         $dom = $this->getContainer();
         $nodeToRemove = $dom->queryOne($this->getOption('remove_query'));
@@ -267,44 +255,50 @@ abstract class DomContainerTest extends \PHPUnit_Framework_TestCase
         $this->assertNotNull($nodeToRemove);
         $this->assertTrue($dom->contains($nodeToRemove));
         $this->assertFalse($dom->contains(new \DOMElement('test')));
-        $this->assertSame($nodeToRemove, $dom->remove($nodeToRemove));
+        $dom->remove($nodeToRemove);
         $this->assertFalse($dom->contains($nodeToRemove));
     }
 
-    /**
-     * @expectedException        DOMException
-     * @expectedExceptionMessage Cannot remove
-     */
-    public function testExceptionOnRemovingRootNode()
+    function testExceptionOnRemovingRootNode()
     {
         $dom = $this->getContainer();
+
+        $this->expectException(\DOMException::class);
+        $this->expectExceptionMessage('Cannot remove');
 
         $dom->remove($dom->getDocument());
     }
 
-    public function testPrependChild()
+    function testPrependChild()
     {
         $dom = $this->getContainer();
         $newNode = new \DOMElement('test');
         $existingNode = $dom->queryOne($this->getOption('prepend_child_target_query'));
 
         $this->assertNotNull($existingNode);
-        $this->assertSame($newNode, $dom->prependChild($newNode, $existingNode));
+        $dom->prependChild($newNode, $existingNode);
         $this->assertSame($newNode, $existingNode->firstChild);
+
+        $dom->removeAll($existingNode->childNodes);
+        $dom->prependChild($newNode, $existingNode);
+        $this->assertSame($newNode, $existingNode->firstChild);
+        $this->assertSame($newNode, $existingNode->lastChild);
     }
 
-    public function testInsertAfter()
+    function testInsertAfter()
     {
         $dom = $this->getContainer();
         $newNode = new \DOMElement('test');
         $existingNode = $dom->queryOne($this->getOption('insert_after_target_query'));
 
         $this->assertNotNull($existingNode);
-        $this->assertSame($newNode, $dom->insertAfter($newNode, $existingNode));
+
+        $dom->insertAfter($newNode, $existingNode);
+
         $this->assertSame($newNode, $existingNode->nextSibling);
     }
 
-    public function testRemoveAll()
+    function testRemoveAll()
     {
         $dom = $this->getContainer();
 
@@ -319,13 +313,11 @@ abstract class DomContainerTest extends \PHPUnit_Framework_TestCase
 
     /**
      * Get already populated container
-     *
-     * @param string $encoding
-     * @return DomContainer
      */
-    protected function getContainer($encoding = DomContainer::INTERNAL_ENCODING)
+    protected function getContainer(string $encoding = DomContainer::INTERNAL_ENCODING): DomContainer
     {
         $dom = $this->createContainer();
+
         $dom->loadString(
             $this->getSampleContent($encoding),
             $this->getOption('is_fragment')
@@ -343,24 +335,11 @@ abstract class DomContainerTest extends \PHPUnit_Framework_TestCase
      */
     abstract protected function createContainer();
 
-    /**
-     * @param string $encoding
-     * @return string
-     */
-    abstract protected function getSampleContent($encoding = DomContainer::INTERNAL_ENCODING);
+    abstract protected function getSampleContent(string $encoding = DomContainer::INTERNAL_ENCODING): string;
 
-    /**
-     * @param string $encoding
-     * @return string
-     */
-    abstract protected function getInvalidSampleContent($encoding = DomContainer::INTERNAL_ENCODING);
+    abstract protected function getInvalidSampleContent(string $encoding = DomContainer::INTERNAL_ENCODING): string;
 
-    /**
-     * @param string $encoding
-     * @param string $string
-     * @return string
-     */
-    protected function getEncodedTestString($encoding = DomContainer::INTERNAL_ENCODING, $string = 'Foo-áž-bar')
+    protected function getEncodedTestString(string $encoding = DomContainer::INTERNAL_ENCODING, string $string = 'Foo-áž-bar'): string
     {
         if (strcasecmp('UTF-8', $encoding) !== 0) {
             $string = mb_convert_encoding($string, $encoding, 'UTF-8');
@@ -383,11 +362,7 @@ abstract class DomContainerTest extends \PHPUnit_Framework_TestCase
         $this->assertSame($this->getEncodedTestString(), $encodedStringElement->textContent);
     }
 
-    /**
-     * @param DomContainer $dom
-     * @return \DOMNode
-     */
-    protected function getContextNode(DomContainer $dom)
+    protected function getContextNode(DomContainer $dom): \DOMNode
     {
         $node = $dom->queryOne($this->getOption('context_node_query'));
 

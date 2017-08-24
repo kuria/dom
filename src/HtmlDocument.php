@@ -1,25 +1,17 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Kuria\Dom;
 
-/**
- * HTML document
- *
- * @author ShiraNai7 <shira.cz>
- */
 class HtmlDocument extends DomContainer
 {
     /** @var bool */
     protected $tidyEnabled = false;
     /** @var array */
-    protected $tidyConfig = array();
+    protected $tidyConfig = [];
     /** @var bool */
     protected $handleEncoding = true;
 
-    /**
-     * @return bool
-     */
-    public function isTidyEnabled()
+    function isTidyEnabled(): bool
     {
         return $this->tidyEnabled;
     }
@@ -27,52 +19,34 @@ class HtmlDocument extends DomContainer
     /**
      * Toggle automatic tidy usage
      *
-     * {@see setTidyConfig()} to configure the process
-     *
-     * @param bool $tidyEnabled
-     * @return static
+     * @see HtmlDocument::setTidyConfig()
      */
-    public function setTidyEnabled($tidyEnabled)
+    function setTidyEnabled(bool $tidyEnabled): void
     {
         $this->tidyEnabled = $tidyEnabled;
-
-        return $this;
     }
 
-    /**
-     * Get tidy configuration
-     *
-     * @return array
-     */
-    public function getTidyConfig()
+    function getTidyConfig(): array
     {
         return $this->tidyConfig;
     }
 
     /**
-     * Add or set tidy configuration
-     *
-     * @param array $tidyConfig
-     * @param bool  $merge
-     * @return static
+     * Add or replace tidy configuration
      */
-    public function setTidyConfig(array $tidyConfig, $merge = true)
+    function setTidyConfig(array $tidyConfig, bool $merge = true): void
     {
         if ($merge) {
             $this->tidyConfig = $tidyConfig + $this->tidyConfig;
         } else {
             $this->tidyConfig = $tidyConfig;
         }
-
-        return $this;
     }
 
     /**
      * See whether automatic encoding handling is enabled
-     *
-     * @return bool
      */
-    public function getHandleEncoding()
+    function isHandlingEncoding(): bool
     {
         return $this->handleEncoding;
     }
@@ -82,18 +56,13 @@ class HtmlDocument extends DomContainer
      * or inserted to ensure the DOM extension handles the encoding correctly.
      *
      * Has no effect on already loaded document.
-     *
-     * @param bool $handleEncoding
-     * @return static
      */
-    public function setHandleEncoding($handleEncoding)
+    function setHandleEncoding(bool $handleEncoding): void
     {
         $this->handleEncoding = $handleEncoding;
-
-        return $this;
     }
 
-    public function setEncoding($newEncoding)
+    function setEncoding(string $newEncoding): void
     {
         parent::setEncoding($newEncoding);
 
@@ -141,26 +110,21 @@ class HtmlDocument extends DomContainer
             $meta->setAttribute('content', $newContentType);
             $this->prependChild($meta, $this->document->getElementsByTagName('head')->item(0));
         }
-
-        return $this;
     }
 
-    public function escape($string)
+    function escape(string $string): string
     {
         return htmlspecialchars(
             $string,
-            PHP_VERSION_ID >= 50400
-                ? ENT_QUOTES | ENT_HTML5
-                : ENT_QUOTES,
+            ENT_QUOTES | ENT_HTML5,
             static::INTERNAL_ENCODING
         );
     }
 
-    public function loadEmpty(array $properties = null)
+    function loadEmpty(array $properties = null): void
     {
         $handleEncoding = $this->handleEncoding;
 
-        $e = null;
         try {
             // suppress encoding handling as it is always specified the "correct" way
             $this->handleEncoding = false;
@@ -179,27 +143,21 @@ HTML
                 null,
                 $properties
             );
-        } catch (\Exception $e) {
         } catch (\Throwable $e) {
-        }
-
-        // restore prior handleEncoding value
-        $this->handleEncoding = $handleEncoding;
-
-        if ($e !== null) {
             $this->clear();
 
             throw $e;
+        } finally {
+            // restore prior handleEncoding value
+            $this->handleEncoding = $handleEncoding;
         }
-
-        return $this;
     }
 
-    protected function populate($content, $encoding = null)
+    protected function populate(string $content, ?string $encoding = null): void
     {
         // handle document encoding
         if ($this->handleEncoding) {
-            $this->handleEncoding($content, $encoding);
+            static::handleEncoding($content, $encoding);
         }
 
         // tidy
@@ -208,34 +166,24 @@ HTML
         }
 
         // load
-        if (PHP_VERSION_ID >= 50400) {
-            $this->document->loadHTML($content, $this->libxmlFlags);
-        } else {
-            $this->document->loadHTML($content); // @codeCoverageIgnore
-        }
+        $this->document->loadHTML($content, $this->libxmlFlags);
     }
 
-    public function save(\DOMNode $contextNode = null, $childrenOnly = false)
+    function save(\DOMNode $contextNode = null, bool $childrenOnly = false): string
     {
         $document = $this->getDocument();
 
         if ($contextNode === null) {
             $content = $document->saveHTML();
         } else {
-            // saveHTML($node) is supported since PHP 5.3.6
-            $useSaveHtmlArgument = PHP_VERSION_ID >= 50306;
 
             if ($childrenOnly) {
                 $content = '';
                 foreach ($contextNode->childNodes as $node) {
-                    $content .= $useSaveHtmlArgument
-                        ? $document->saveHTML($node)
-                        : $document->saveXML($node);
+                    $content .= $document->saveHTML($node);
                 }
             } else {
-                $content = $useSaveHtmlArgument
-                    ? $document->saveHTML($contextNode)
-                    : $document->saveXML($contextNode);
+                $content = $document->saveHTML($contextNode);
             }
         }
 
@@ -246,9 +194,8 @@ HTML
      * Get the head element
      *
      * @throws \RuntimeException if the head element is not found
-     * @return \DOMElement
      */
-    public function getHead()
+    function getHead(): \DOMElement
     {
         /** @var \DOMElement|null $head */
         $head = $this->getDocument()->getElementsByTagName('head')->item(0);
@@ -264,9 +211,8 @@ HTML
      * Get the body element
      *
      * @throws \RuntimeException if the body element is not found
-     * @return \DOMElement
      */
-    public function getBody()
+    function getBody(): \DOMElement
     {
         /** @var \DOMElement|null $body */
         $body = $this->getDocument()->getElementsByTagName('body')->item(0);
@@ -281,11 +227,8 @@ HTML
     /**
      * Make sure the passed HTML document string contains an encoding
      * specification that is supported by the DOM extension.
-     *
-     * @param string      $htmlDocument  the HTML document string to be modified
-     * @param string|null $knownEncoding encoding, if already known
      */
-    public static function handleEncoding(&$htmlDocument, $knownEncoding = null)
+    static function handleEncoding(string &$htmlDocument, ?string $knownEncoding = null): void
     {
         $document = new SimpleHtmlParser($htmlDocument);
 

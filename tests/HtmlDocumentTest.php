@@ -1,12 +1,12 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Kuria\Dom;
 
 class HtmlDocumentTest extends DomContainerTest
 {
-    protected function initializeOptions()
+    protected function initializeOptions(): array
     {
-        return array(
+        return [
             'encoded_string_element_query' => '//h1',
             'context_node_query' => '//ul[@id="bar"]',
             'query' => '/html/body/ul/li',
@@ -17,22 +17,21 @@ class HtmlDocumentTest extends DomContainerTest
             'prepend_child_target_query' => '//body',
             'insert_after_target_query' => '//ul[@id="foo"]',
             'remove_all_target_query' => '//ul[@id="bar"]',
-        );
+        ];
     }
 
-    public function testConfiguration()
+    function testConfiguration()
     {
-        /** @var HtmlDocument $dom */
-        $dom = parent::testConfiguration();
+        parent::testConfiguration();
 
-        $this->assertTrue($dom->getHandleEncoding());
+        $dom = $this->createContainer();
+
+        $this->assertTrue($dom->isHandlingEncoding());
         $this->assertFalse($dom->isTidyEnabled());
         $this->assertEmpty($dom->getTidyConfig());
-
-        return $dom;
     }
 
-    public function testEscape()
+    function testEscape()
     {
         $dom = $this->createContainer();
 
@@ -42,7 +41,7 @@ class HtmlDocumentTest extends DomContainerTest
         );
     }
 
-    public function testGetHead()
+    function testGetHead()
     {
         /** @var HtmlDocument $dom */
         $dom = $this->getContainer();
@@ -51,20 +50,19 @@ class HtmlDocumentTest extends DomContainerTest
         $this->assertSame('head', $dom->getHead()->tagName);
     }
 
-    /**
-     * @expectedException RuntimeException
-     * @expectedExceptionMessage The head element was not found
-     */
-    public function testExceptionOnMissinHead()
+    function testExceptionOnMissinHead()
     {
         /** @var HtmlDocument $dom */
         $dom = $this->createContainer();
 
         $dom->remove($dom->getHead());
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('The head element was not found');
         $dom->getHead();
     }
 
-    public function testGetBody()
+    function testGetBody()
     {
         /** @var HtmlDocument $dom */
         $dom = $this->getContainer();
@@ -73,20 +71,20 @@ class HtmlDocumentTest extends DomContainerTest
         $this->assertSame('body', $dom->getBody()->tagName);
     }
 
-    /**
-     * @expectedException RuntimeException
-     * @expectedExceptionMessage The body element was not found
-     */
-    public function testExceptionOnMissingBody()
+    function testExceptionOnMissingBody()
     {
         /** @var HtmlDocument $dom */
         $dom = $this->createContainer();
 
         $dom->remove($dom->getBody());
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('The body element was not found');
+
         $dom->getBody();
     }
     
-    public function testSetEncodingUpdatesExistingMetaHttpEquiv()
+    function testSetEncodingUpdatesExistingMetaHttpEquiv()
     {
         $dom = $this->getContainer($this->getOption('custom_encoding'));
         
@@ -100,7 +98,7 @@ class HtmlDocumentTest extends DomContainerTest
         $this->assertContains('charset=' . DomContainer::INTERNAL_ENCODING, $httpEquivMeta->attributes->getNamedItem('content')->nodeValue);
     }
     
-    public function testSetEncodingCreatesNewMetaHttpEquiv()
+    function testSetEncodingCreatesNewMetaHttpEquiv()
     {
         $dom = $this->createContainer();
         $dom->setHandleEncoding(false);
@@ -120,7 +118,7 @@ HTML
         $this->assertContains('charset=' . DomContainer::INTERNAL_ENCODING, $httpEquivMeta->attributes->getNamedItem('content')->nodeValue);
     }
 
-    public function testSetEncodingRemovesMetaCharset()
+    function testSetEncodingRemovesMetaCharset()
     {
         $dom = $this->createContainer();
         $dom->setHandleEncoding(false);
@@ -144,21 +142,21 @@ HTML
     /**
      * @requires extension tidy
      */
-    public function testTidy()
+    function testTidy()
     {
         $dom = $this->createContainer();
 
-        $tidyConfig = array(
+        $tidyConfig = [
             'doctype' => 'loose',
             'drop-font-tags' => true,
-        );
+        ];
         
         $dom->setTidyEnabled(true);
 
         $dom->setTidyConfig($tidyConfig);
         $this->assertSame($tidyConfig, $dom->getTidyConfig());
-        $dom->setTidyConfig(array('foo' => 'bar'));
-        $this->assertEquals($tidyConfig + array('foo' => 'bar'), $dom->getTidyConfig());
+        $dom->setTidyConfig(['foo' => 'bar']);
+        $this->assertEquals($tidyConfig + ['foo' => 'bar'], $dom->getTidyConfig());
         $dom->setTidyConfig($tidyConfig, false);
         $this->assertSame($tidyConfig, $dom->getTidyConfig());
         
@@ -174,7 +172,7 @@ HTML
         $this->assertNotNull($dom->queryOne('//p'));
     }
 
-    public function testDisabledHandleEncoding()
+    function testDisabledHandleEncoding()
     {
         $dom = $this->createContainer();
 
@@ -189,7 +187,7 @@ HTML
         $this->assertNull($dom->queryOne('//meta'));
     }
 
-    public function testHandleEncodingKeepsValidMetaHttpEquiv()
+    function testHandleEncodingKeepsValidMetaHttpEquiv()
     {
         $html = <<<HTML
 <!doctype html>
@@ -201,7 +199,7 @@ HTML;
         $this->assertContains('<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-15">', $html, '', true);
     }
 
-    public function testHandleEncodingReplacesMetaHttpEquivIfDifferentKnownEncoding()
+    function testHandleEncodingReplacesMetaHttpEquivIfDifferentKnownEncoding()
     {
         $html = <<<HTML
 <!doctype html>
@@ -213,7 +211,7 @@ HTML;
         $this->assertContains('<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">', $html, '', true);
     }
 
-    public function testHandleEncodingConvertsMetaCharsetToHttpEquiv()
+    function testHandleEncodingConvertsMetaCharsetToHttpEquiv()
     {
         $html = <<<HTML
 <!doctype html>
@@ -226,7 +224,7 @@ HTML;
         $this->assertNotContains('<meta charset=', $html, '', true);
     }
 
-    public function testHandleEncodingCreatesMetaHttpEquivInHead()
+    function testHandleEncodingCreatesMetaHttpEquivInHead()
     {
         $html = <<<HTML
 <!doctype html>
@@ -245,7 +243,7 @@ HTML;
         $this->assertGreaterThan($headPosition, $metaHttpEquivPosition);
     }
 
-    public function testHandleEncodingCreatesMetaHttpEquivAfterDoctype()
+    function testHandleEncodingCreatesMetaHttpEquivAfterDoctype()
     {
         $html = <<<HTML
 <!doctype html>
@@ -262,7 +260,7 @@ HTML;
         $this->assertGreaterThan($doctypePosition, $metaHttpEquivPosition);
     }
 
-    public function testHandleEncodingCreatesMetaHttpEquivAtStart()
+    function testHandleEncodingCreatesMetaHttpEquivAtStart()
     {
         $html = <<<HTML
 <title>Hello</title>
@@ -278,7 +276,7 @@ HTML;
         $this->assertLessThan($titlePosition, $metaHttpEquivPosition);
     }
 
-    protected function assertValidMinimalOutput($output, $encoding = DomContainer::INTERNAL_ENCODING)
+    protected function assertValidMinimalOutput(string $output, string $encoding = DomContainer::INTERNAL_ENCODING): void
     {
         $this->assertContains('<!doctype', $output, '', true);
         $this->assertContains('<html>', $output, '', true);
@@ -287,7 +285,7 @@ HTML;
         $this->assertContains('<body>', $output, '', true);
     }
 
-    protected function assertValidSampleOutput($output, $encoding = DomContainer::INTERNAL_ENCODING)
+    protected function assertValidSampleOutput(string $output, string $encoding = DomContainer::INTERNAL_ENCODING): void
     {
         $this->assertContains('<h1>', $output, '', true);
         $this->assertContains('<p>', $output, '', true);
@@ -296,12 +294,12 @@ HTML;
         $this->assertContains('<li>', $output, '', true);
     }
 
-    protected function assertValidEmptyOutput($output, $encoding = DomContainer::INTERNAL_ENCODING)
+    protected function assertValidEmptyOutput(string $output, string $encoding = DomContainer::INTERNAL_ENCODING): void
     {
         $this->assertRegExp('~<body>\s*</body>~', $output);
     }
 
-    protected function assertValidOutputWithContextNode($output, $encoding = DomContainer::INTERNAL_ENCODING)
+    protected function assertValidOutputWithContextNode(string $output, string $encoding = DomContainer::INTERNAL_ENCODING): void
     {
         $this->assertNotContains('<!doctype', $output, '', true);
         $this->assertNotContains('<html>', $output, '', true);
@@ -315,7 +313,7 @@ HTML;
         $this->assertContains('<li>', $output, '', true);
     }
 
-    protected function assertValidOutputWithContextNodeChildrenOnly($output, $encoding = DomContainer::INTERNAL_ENCODING)
+    protected function assertValidOutputWithContextNodeChildrenOnly(string $output, string $encoding = DomContainer::INTERNAL_ENCODING)
     {
         $this->assertNotContains('<!doctype', $output, '', true);
         $this->assertNotContains('<html>', $output, '', true);
@@ -334,7 +332,7 @@ HTML;
         return new HtmlDocument();
     }
 
-    protected function getSampleContent($encoding = DomContainer::INTERNAL_ENCODING)
+    protected function getSampleContent(string $encoding = DomContainer::INTERNAL_ENCODING): string
     {
         return <<<HTML
 <!doctype html>
@@ -362,7 +360,7 @@ HTML;
 HTML;
     }
 
-    protected function getInvalidSampleContent($encoding = DomContainer::INTERNAL_ENCODING)
+    protected function getInvalidSampleContent(string $encoding = DomContainer::INTERNAL_ENCODING): string
     {
         return <<<HTML
 <!doctype html>

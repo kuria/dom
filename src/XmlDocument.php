@@ -1,28 +1,20 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Kuria\Dom;
 
-/**
- * XML document
- *
- * @author ShiraNai7 <shira.cz>
- */
 class XmlDocument extends DomContainer
 {
-    public function escape($string)
+    function escape(string $string): string
     {
         return htmlspecialchars(
             $string,
-            PHP_VERSION_ID >= 50400
-                ? ENT_QUOTES | ENT_XML1
-                : ENT_QUOTES,
+            ENT_QUOTES | ENT_XML1,
             static::INTERNAL_ENCODING
         );
     }
 
-    public function loadEmpty(array $properties = null)
+    function loadEmpty(array $properties = null): void
     {
-        $e = null;
         try {
             $this->loadString(
                 <<<XML
@@ -36,25 +28,19 @@ XML
 
             // remove the dummy root node
             $this->removeAll($this->getDocument()->childNodes);
-        } catch (\Exception $e) {
         } catch (\Throwable $e) {
-        }
-
-        if ($e !== null) {
             $this->clear();
 
             throw $e;
         }
-
-        return $this;
     }
 
-    protected function populate($content, $encoding = null)
+    protected function populate(string $content, ?string $encoding = null): void
     {
         $this->document->loadXML($content, $this->libxmlFlags);
     }
 
-    public function save(\DOMNode $contextNode = null, $childrenOnly = false)
+    function save(\DOMNode $contextNode = null, bool $childrenOnly = false): string
     {
         $document = $this->getDocument();
 
@@ -74,9 +60,8 @@ XML
      * Get the root element
      *
      * @throws \RuntimeException if the root element is not found
-     * @return \DOMElement
      */
-    public function getRoot()
+    function getRoot(): \DOMElement
     {
         /** @var \DOMElement|null $root */
         $root = $this->getDocument()->firstChild;

@@ -36,7 +36,7 @@ Features
 Requirements
 ************
 
-- PHP 5.3.0+ or 7.0.0+
+- PHP 7.1+
 
 
 Usage examples

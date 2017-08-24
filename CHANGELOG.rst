@@ -1,6 +1,15 @@
 Changelog
 #########
 
+2.0.0
+*****
+
+- updated to PHP 7.1
+- methods now return ``NULL`` on failure instead of ``FALSE``
+- removed useless return values from several methods
+- code style improvements
+
+
 1.0.1
 *****
 

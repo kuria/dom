@@ -1,12 +1,12 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Kuria\Dom;
 
 class XmlDocumentTest extends DomContainerTest
 {
-    protected function initializeOptions()
+    protected function initializeOptions(): array
     {
-        return array(
+        return [
             'encoded_string_element_query' => '/list/item[@id="1"]/alias',
             'context_node_query' => '/list/item[@id="1"]',
             'query' => '//alias',
@@ -17,10 +17,10 @@ class XmlDocumentTest extends DomContainerTest
             'prepend_child_target_query' => '/list',
             'insert_after_target_query' => '/list/item[@id="1"]',
             'remove_all_target_query' => '/list',
-        );
+        ];
     }
 
-    public function testEscape()
+    function testEscape()
     {
         $dom = $this->createContainer();
 
@@ -30,7 +30,7 @@ class XmlDocumentTest extends DomContainerTest
         );
     }
 
-    public function testGetRoot()
+    function testGetRoot()
     {
         /** @var XmlFragment $dom */
         $dom = $this->getContainer();
@@ -39,24 +39,23 @@ class XmlDocumentTest extends DomContainerTest
         $this->assertSame('list', $dom->getRoot()->tagName);
     }
 
-    /**
-     * @expectedException RuntimeException
-     * @expectedExceptionMessage The root element was not found
-     */
-    public function testExceptionOnMissingRoot()
+    function testExceptionOnMissingRoot()
     {
         /** @var XmlFragment $dom */
         $dom = $this->createContainer();
 
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('The root element was not found');
+
         $dom->getRoot();
     }
 
-    protected function assertValidMinimalOutput($output, $encoding = DomContainer::INTERNAL_ENCODING)
+    protected function assertValidMinimalOutput(string $output, string $encoding = DomContainer::INTERNAL_ENCODING): void
     {
         $this->assertRegExp(sprintf('~<\?xml[^>]*encoding="%s"~i', preg_quote($encoding, '~')), $output);
     }
 
-    protected function assertValidSampleOutput($output, $encoding = DomContainer::INTERNAL_ENCODING)
+    protected function assertValidSampleOutput(string $output, string $encoding = DomContainer::INTERNAL_ENCODING): void
     {
         $this->assertContains('<list>', $output, '', true);
         $this->assertContains('<item id="1">', $output, '', true);
@@ -65,12 +64,12 @@ class XmlDocumentTest extends DomContainerTest
         $this->assertContains('<position>', $output, '', true);
     }
 
-    protected function assertValidEmptyOutput($output, $encoding = DomContainer::INTERNAL_ENCODING)
+    protected function assertValidEmptyOutput(string $output, string $encoding = DomContainer::INTERNAL_ENCODING): void
     {
         $this->assertRegExp('~^<\?xml[^>]*\?>\s*$~', $output);
     }
 
-    protected function assertValidOutputWithContextNode($output, $encoding = DomContainer::INTERNAL_ENCODING)
+    protected function assertValidOutputWithContextNode(string $output, string $encoding = DomContainer::INTERNAL_ENCODING): void
     {
         $this->assertNotContains('<?xml', $output, '', true);
         $this->assertNotContains('<list>', $output, '', true);
@@ -80,7 +79,7 @@ class XmlDocumentTest extends DomContainerTest
         $this->assertContains('<position>', $output, '', true);
     }
 
-    protected function assertValidOutputWithContextNodeChildrenOnly($output, $encoding = DomContainer::INTERNAL_ENCODING)
+    protected function assertValidOutputWithContextNodeChildrenOnly(string $output, string $encoding = DomContainer::INTERNAL_ENCODING): void
     {
         $this->assertNotContains('<?xml', $output, '', true);
         $this->assertNotContains('<list>', $output, '', true);
@@ -95,7 +94,7 @@ class XmlDocumentTest extends DomContainerTest
         return new XmlDocument();
     }
 
-    protected function getSampleContent($encoding = DomContainer::INTERNAL_ENCODING)
+    protected function getSampleContent(string $encoding = DomContainer::INTERNAL_ENCODING): string
     {
         return <<<XML
 <?xml version="1.0" encoding="{$encoding}"?>
@@ -113,7 +112,7 @@ class XmlDocumentTest extends DomContainerTest
 XML;
     }
 
-    protected function getInvalidSampleContent($encoding = DomContainer::INTERNAL_ENCODING)
+    protected function getInvalidSampleContent(string $encoding = DomContainer::INTERNAL_ENCODING): string
     {
         return <<<XML
 <?xml version="1.0" encoding="{$encoding}"?>
