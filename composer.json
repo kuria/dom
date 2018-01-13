@@ -1,13 +1,14 @@
 {
     "name": "kuria/dom",
-    "description": "Wrappers around the PHP DOM classes.",
-    "keywords": ["DOM", "document object model", "wrapper", "DOMDocument", "XPath", "HTML", "XML"],
+    "description": "Wrappers around the PHP DOM classes",
+    "keywords": ["DOM", "document object model", "wrapper", "DOMDocument", "XPath", "HTML", "XML", "fragment"],
     "license": "MIT",
     "require": {
-        "php": ">=7.1.0"
+        "php": ">=7.1",
+        "kuria/simple-html-parser": "^1.0"
     },
     "require-dev": {
-        "phpunit/phpunit": "^6.2"
+        "phpunit/phpunit": "^6.5"
     },
     "autoload": {
         "psr-4": {

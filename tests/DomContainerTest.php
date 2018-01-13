@@ -15,7 +15,7 @@ abstract class DomContainerTest extends TestCase
         if ($this->options === null) {
             $this->options = $this->initializeOptions() + [
                 'is_fragment' => false,
-                'custom_encoding' => 'ISO-8859-15',
+                'custom_encoding' => 'iso-8859-15',
             ];
         }
 

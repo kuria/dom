@@ -2,6 +2,8 @@
 
 namespace Kuria\Dom;
 
+use Kuria\SimpleHtmlParser\SimpleHtmlParser as Parser;
+
 class HtmlDocument extends DomContainer
 {
     /** @var bool */
@@ -230,7 +232,7 @@ HTML
      */
     static function handleEncoding(string &$htmlDocument, ?string $knownEncoding = null): void
     {
-        $document = new SimpleHtmlParser($htmlDocument);
+        $document = new Parser($htmlDocument);
 
         $encodingTag = $document->getEncodingTag();
         $specifiedEncoding = $document->getEncoding();
@@ -244,7 +246,7 @@ HTML
             $replacement = "<meta http-equiv=\"Content-Type\" content=\"text/html; charset={$document->escape($usedEncoding)}\">";
             
             if ($encodingTag === null) {
-                $insertAfter = $document->find(SimpleHtmlParser::OPENING_TAG, 'head', 1024) ?: $document->getDoctypeElement();
+                $insertAfter = $document->find(Parser::OPENING_TAG, 'head', 1024) ?: $document->getDoctypeElement();
             }
 
             $document = null;
