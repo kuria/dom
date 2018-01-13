@@ -1,6 +1,12 @@
 Changelog
 #########
 
+2.1.0
+*****
+
+- moved ``SimpleHtmlParser`` into its own component
+
+
 2.0.0
 *****
 
