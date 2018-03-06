@@ -123,7 +123,7 @@ class HtmlDocument extends DomContainer
         );
     }
 
-    function loadEmpty(array $properties = null): void
+    function loadEmpty(?array $properties = null): void
     {
         $handleEncoding = $this->handleEncoding;
 
@@ -171,7 +171,7 @@ HTML
         $this->document->loadHTML($content, $this->libxmlFlags);
     }
 
-    function save(\DOMNode $contextNode = null, bool $childrenOnly = false): string
+    function save(?\DOMNode $contextNode = null, bool $childrenOnly = false): string
     {
         $document = $this->getDocument();
 

@@ -13,7 +13,7 @@ class XmlDocument extends DomContainer
         );
     }
 
-    function loadEmpty(array $properties = null): void
+    function loadEmpty(?array $properties = null): void
     {
         try {
             $this->loadString(
@@ -40,7 +40,7 @@ XML
         $this->document->loadXML($content, $this->libxmlFlags);
     }
 
-    function save(\DOMNode $contextNode = null, bool $childrenOnly = false): string
+    function save(?\DOMNode $contextNode = null, bool $childrenOnly = false): string
     {
         $document = $this->getDocument();
 

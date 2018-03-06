@@ -4,7 +4,7 @@ namespace Kuria\Dom;
 
 class XmlFragment extends XmlDocument
 {
-    function loadEmpty(array $properties = null): void
+    function loadEmpty(?array $properties = null): void
     {
         $this->loadString('', null, $properties);
     }
@@ -25,7 +25,7 @@ XML
         );
     }
 
-    function save(\DOMNode $contextNode = null, bool $childrenOnly = false): string
+    function save(?\DOMNode $contextNode = null, bool $childrenOnly = false): string
     {
         if ($contextNode === null) {
             $contextNode = $this->getRoot();
@@ -35,7 +35,7 @@ XML
         return parent::save($contextNode, $childrenOnly);
     }
 
-    function query(string $expression, \DOMNode $contextNode = null, bool $registerNodeNs = true): \DOMNodeList
+    function query(string $expression, ?\DOMNode $contextNode = null, bool $registerNodeNs = true): \DOMNodeList
     {
         // if no context node has been given, assume <root>
         if ($contextNode === null) {

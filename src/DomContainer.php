@@ -17,6 +17,34 @@ abstract class DomContainer
     protected $libxmlFlags = 0;
 
     /**
+     * Create container from a string
+     *
+     * @see DomContainer::loadString()
+     * @return static
+     */
+    static function fromString(string $content, ?string $encoding = null, ?array $documentProps = null)
+    {
+        $dom = new static();
+        $dom->loadString($content, $encoding, $documentProps);
+
+        return $dom;
+    }
+
+    /**
+     * Create container using existing DOM instances
+     *
+     * @see DomContainer::loadDocument()
+     * @return static
+     */
+    static function fromDocument(\DOMDocument $document, ?\DOMXPath $xpath = null)
+    {
+        $dom = new static();
+        $dom->loadDocument($document, $xpath);
+
+        return $dom;
+    }
+
+    /**
      * Clear the document and xpath instances
      */
     function clear()
@@ -145,9 +173,9 @@ abstract class DomContainer
     abstract protected function populate(string $content, ?string $encoding = null): void;
 
     /**
-     * Create container from existing DOM instances
+     * Load existing DOM instances
      */
-    function loadDocument(\DOMDocument $document, \DOMXPath $xpath = null): void
+    function loadDocument(\DOMDocument $document, ?\DOMXPath $xpath = null): void
     {
         $this->clear();
 
@@ -156,12 +184,12 @@ abstract class DomContainer
     }
 
     /**
-     * Get content as a string
+     * Dump the document or its part into a string
      *
      * - if $contextNode is specified, only a subset of the document is returned
      * - if $contextNode is specified and $childrenOnly is TRUE, only children of the context node are returned
      */
-    abstract function save(\DOMNode $contextNode = null, bool $childrenOnly = false): string;
+    abstract function save(?\DOMNode $contextNode = null, bool $childrenOnly = false): string;
 
     /**
      * Escape the given string
@@ -191,9 +219,10 @@ abstract class DomContainer
     }
 
     /**
-     * Perform a XPath query
+     * Perform an XPath query
      *
      * @throws \RuntimeException on invalid expression or context node
+     * @return \DOMNodeList|\DOMNode[]
      */
     function query(string $expression, ?\DOMNode $contextNode = null, bool $registerNodeNs = true): \DOMNodeList
     {
@@ -212,9 +241,9 @@ abstract class DomContainer
     }
 
     /**
-     * Perform a XPath query and return the first result
+     * Perform an XPath query and return the first result
      */
-    function queryOne(string $expression, \DOMNode $contextNode = null, bool $registerNodeNs = true): ?\DOMNode
+    function queryOne(string $expression, ?\DOMNode $contextNode = null, bool $registerNodeNs = true): ?\DOMNode
     {
         $nodes = $this->query($expression, $contextNode, $registerNodeNs);
 
@@ -222,11 +251,19 @@ abstract class DomContainer
     }
 
     /**
+     * Perform an XPath query and see if it has matched
+     */
+    function exists(string $expression, ?\DOMNode $contextNode = null, bool $registerNodeNs = true): bool
+    {
+        return $this->query($expression, $contextNode, $registerNodeNs)->length > 0;
+    }
+
+    /**
      * See if a node is descendant of another node
      *
      * If no parent node is given, the document is used in its place.
      */
-    function contains(\DOMNode $node, \DOMNode $parentNode = null): bool
+    function contains(\DOMNode $node, ?\DOMNode $parentNode = null): bool
     {
         if ($parentNode === null) {
             $parentNode = $this->getDocument();

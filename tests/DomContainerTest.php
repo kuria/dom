@@ -16,6 +16,7 @@ abstract class DomContainerTest extends TestCase
             $this->options = $this->initializeOptions() + [
                 'is_fragment' => false,
                 'custom_encoding' => 'iso-8859-15',
+                'non_matching_query' => '/nonexistent',
             ];
         }
 
@@ -117,13 +118,38 @@ abstract class DomContainerTest extends TestCase
         $this->assertValidEncodedTestString($dom);
     }
 
+    function testFromString()
+    {
+        $dom = $this->createContainer()::fromString($this->getSampleContent());
+        $this->assertValidContainer($dom);
+        $this->assertValidEncodedTestString($dom);
+    }
+
     function testLoadDocument()
     {
+        $anotherDom = $this->getContainer();
+        $document = $anotherDom->getDocument();
+        $xpath = $anotherDom->getXpath();
+
         $dom = $this->createContainer();
-        
-        $document = $this->getContainer()->getDocument();
-        $dom->loadDocument($document);
-        
+        $dom->loadDocument($document, $xpath);
+
+        $this->assertSame($document, $dom->getDocument());
+        $this->assertSame($xpath, $dom->getXpath());
+        $this->assertValidContainer($dom, $document->encoding);
+        $this->assertValidEncodedTestString($dom);
+    }
+
+    function testFromDocument()
+    {
+        $anotherDom = $this->getContainer();
+        $document = $anotherDom->getDocument();
+        $xpath = $anotherDom->getXpath();
+
+        $dom = $this->createContainer()::fromDocument($document, $xpath);
+
+        $this->assertSame($document, $dom->getDocument());
+        $this->assertSame($xpath, $dom->getXpath());
         $this->assertValidContainer($dom, $document->encoding);
         $this->assertValidEncodedTestString($dom);
     }
@@ -148,6 +174,15 @@ abstract class DomContainerTest extends TestCase
     }
 
     abstract function testEscape();
+
+    function testClear()
+    {
+        $dom = $this->getContainer();
+
+        $this->assertTrue($dom->isLoaded());
+        $dom->clear();
+        $this->assertFalse($dom->isLoaded());
+    }
 
     function testSave()
     {
@@ -238,13 +273,14 @@ abstract class DomContainerTest extends TestCase
         $this->getContainer()->query('invalid ^ 123 456 query / - ... blah blah O_o');
     }
 
-    function testClear()
+    function testExists()
     {
         $dom = $this->getContainer();
 
-        $this->assertTrue($dom->isLoaded());
-        $dom->clear();
-        $this->assertFalse($dom->isLoaded());
+        $this->assertTrue($dom->exists($this->getOption('query')));
+        $this->assertTrue($dom->exists($this->getOption('context_query'), $this->getContextNode($dom)));
+        $this->assertFalse($dom->exists($this->getOption('non_matching_query')));
+        $this->assertFalse($dom->exists($this->getOption('non_matching_query'), $this->getContextNode($dom)));
     }
 
     function testContainsAndRemove()
@@ -348,12 +384,15 @@ abstract class DomContainerTest extends TestCase
         return $string;
     }
 
-    protected function assertValidContainer(DomContainer $dom, $encoding = DomContainer::INTERNAL_ENCODING)
+    protected function assertValidContainer(DomContainer $dom, $expectedEncoding = DomContainer::INTERNAL_ENCODING)
     {
         $this->assertTrue($dom->isLoaded());
         $this->assertInstanceof('DOMDocument', $dom->getDocument());
         $this->assertInstanceof('DOMXPath', $dom->getXpath());
-        $this->assertTrue(strcasecmp($returnedEncoding = $dom->getEncoding(), $encoding) === 0, sprintf('getEncoding() should return the used encoding ("%s" returned vs "%s" actual)', $returnedEncoding, $encoding));
+        $this->assertTrue(
+            strcasecmp($actualEncoding = $dom->getEncoding(), $expectedEncoding) === 0,
+            sprintf('getEncoding() should return "%s", but got "%s"', $actualEncoding, $expectedEncoding)
+        );
     }
 
     protected function assertValidEncodedTestString(DomContainer $dom)

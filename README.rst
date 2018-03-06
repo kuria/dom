@@ -39,6 +39,153 @@ Requirements
 - PHP 7.1+
 
 
+Container methods
+*****************
+
+These methods are shared by both HTML and XML containers.
+
+
+Loading documents
+=================
+
+.. code:: php
+
+   <?php
+
+   use Kuria\Dom\HtmlDocument; // or XmlDocument, HtmlFragment, etc.
+
+   // using loadString()
+   $dom = new HtmlDocument();
+   $dom->setLibxmlFlags($customLibxmlFlags); // optional
+   $dom->setIgnoreErrors($ignoreErrors); // optional
+   $dom->loadString($html);
+
+   // using static loadString() shortcut
+   $dom = HtmlDocument::fromString($html);
+
+   // using existing document instance
+   $dom = new HtmlDocument();
+   $dom->loadDocument($document);
+
+   // using static loadDocument() shortcut
+   $dom = HtmlDocument::fromDocument($document);
+
+   // creating an empty document
+   $dom = new HtmlDocument();
+   $dom->loadEmpty();
+
+
+Getting or changing document encoding
+=====================================
+
+.. code:: php
+
+   <?php
+
+   // get encoding
+   $encoding = $dom->getEncoding();
+
+   // set encoding
+   $dom->setEncoding($newEncoding);
+
+.. NOTE::
+
+   The DOM extension uses UTF-8 encoding.
+
+   This means that text nodes, attributes, etc.:
+
+   - will be encoded using UTF-8 when read (e.g. ``$elem->textContent``)
+   - should be encoded using UTF-8 when written (e.g. ``$elem->setAttribute()``)
+
+   The encoding configured by ``setEncoding()`` is used when saving the document,
+   see `Saving documents`_.
+
+
+Saving documents
+================
+
+.. code:: php
+
+   <?php
+
+   // entire document
+   $content = $dom->save();
+
+   // single element
+   $content = $dom->save($elem);
+
+   // children of a single element
+   $content = $dom->save($elem, true);
+
+
+Getting DOM instances
+=====================
+
+After a document has been loaded, the DOM instances are available via getters:
+
+.. code:: php
+
+   <?php
+
+   $document = $dom->getDocument();
+   $xpath = $dom->getXpath();
+
+
+Running XPath queries
+=====================
+
+.. code:: php
+
+   <?php
+
+   // get a DOMNodeList
+   $divs = $dom->query('//div');
+
+   // get a single DOMNode (or null)
+   $div = $dom->query('//div');
+
+   // check if a query matches
+   $divExists = $dom->exists('//div');
+
+
+Escaping strings
+================
+
+.. code:: php
+
+   <?php
+
+   $escapedString = $dom->escape($string);
+
+
+DOM manipulation and traversal helpers
+======================================
+
+Helpers for commonly needed tasks that aren't easily achieved via existing DOM methods:
+
+.. code:: php
+
+   <?php
+
+   // check if the document contains a node
+   $hasNode = $dom->contains($node);
+
+   // check if a node contains another node
+   $hasNode = $dom->contains($node, $parentNode);
+
+   // remove a node
+   $dom->remove($node);
+
+   // remove a list of nodes
+   $dom->removeAll($nodes);
+
+   // prepend a child node
+   $dom->prependChild($newNode, $existingNode);
+
+   // insert a node after another node
+   $dom->insertAfter($newNode, $existingNode);
+
+
 Usage examples
 **************
 
@@ -67,9 +214,7 @@ Loading an existing document
    </html>
    HTML;
 
-
-   $dom = new HtmlDocument();
-   $dom->loadString($html);
+   $dom = HtmlDocument::fromString($html);
 
    var_dump($dom->queryOne('//title')->textContent);
    var_dump($dom->queryOne('//h1')->textContent);
@@ -80,6 +225,18 @@ Output:
 
   string(16) "Example document"
   string(12) "Hello world!"
+
+
+Optionally, the markup can be fixed by `Tidy <http://php.net/manual/en/book.tidy.php>`_
+prior to being loaded.
+
+.. code:: php
+
+   <?php
+
+   $dom = new HtmlDocument();
+   $dom->setTidyEnabled(true);
+   $dom->loadString($html);
 
 
 Creating an new document
@@ -131,8 +288,7 @@ Loading an existing fragment
 
    use Kuria\Dom\HtmlFragment;
 
-   $dom = new HtmlFragment();
-   $dom->loadString('<div id="test"><span>Hello</span></div>');
+   $dom = HtmlFragment::fromString('<div id="test"><span>Hello</span></div>');
 
    $element = $dom->queryOne('/div[@id="test"]/span');
 
@@ -198,8 +354,7 @@ Loading an existing document
    </library>
    XML;
 
-   $dom = new XmlDocument();
-   $dom->loadString($xml);
+   $dom = XmlDocument::fromString($xml);
 
    foreach ($dom->query('/library/book') as $book) {
       /** @var \DOMElement $book */
@@ -276,8 +431,7 @@ Handling XML namespaces in XPath queries
    </lib:root>
    XML;
 
-   $dom = new XmlDocument();
-   $dom->loadString($xml);
+   $dom = XmlDocument::fromString($xml);
 
    // register namespace in XPath
    $dom->getXpath()->registerNamespace('lib', 'http://example.com/');
@@ -297,7 +451,6 @@ Output:
   string(32) "Alice's Adventures in Wonderland"
 
 
-
 XML fragments
 =============
 
@@ -310,8 +463,7 @@ Loading an existing fragment
 
    use Kuria\Dom\XmlFragment;
 
-   $dom = new XmlFragment();
-   $dom->loadString('<fruits><fruit name="Apple" /><fruit name="Banana" /></fruits>');
+   $dom = XmlFragment::fromString('<fruits><fruit name="Apple" /><fruit name="Banana" /></fruits>');
 
    foreach ($dom->query('/fruits/fruit') as $fruit) {
        /** @var \DOMElement $fruit */

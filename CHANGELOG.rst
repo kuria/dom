@@ -1,6 +1,14 @@
 Changelog
 #########
 
+2.2.0
+*****
+
+- implemented ``DomContainer::fromString()``
+- implemented ``DomContainer::fromDocument()``
+- implemented ``DomContainer::exists()``
+
+
 2.1.0
 *****
 
