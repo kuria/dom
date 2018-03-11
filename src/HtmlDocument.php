@@ -2,16 +2,16 @@
 
 namespace Kuria\Dom;
 
-use Kuria\SimpleHtmlParser\SimpleHtmlParser as Parser;
+use Kuria\SimpleHtmlParser\SimpleHtmlParser;
 
 class HtmlDocument extends DomContainer
 {
     /** @var bool */
-    protected $tidyEnabled = false;
+    private $tidyEnabled = false;
     /** @var array */
-    protected $tidyConfig = [];
+    private $tidyConfig = [];
     /** @var bool */
-    protected $handleEncoding = true;
+    private $handleEncoding = true;
 
     function isTidyEnabled(): bool
     {
@@ -70,12 +70,10 @@ class HtmlDocument extends DomContainer
 
         // update or insert the appropriate meta tag manually
         // (as setting DOMDocument->encoding alone is not enough for HTML documents)
-        $contentTypeMetaFound = false;
+        $httpEquivAttr = null;
+        $contentAttr = null;
 
         foreach ($this->query('/html/head/meta') as $meta) {
-            $httpEquivAttr = null;
-            $contentAttr = null;
-
             foreach ($meta->attributes as $attr) {
                 if (
                     $httpEquivAttr === null
@@ -96,7 +94,6 @@ class HtmlDocument extends DomContainer
                 }
 
                 if (isset($httpEquivAttr, $contentAttr)) {
-                    $contentTypeMetaFound = true;
                     break 2;
                 }
             }
@@ -104,13 +101,13 @@ class HtmlDocument extends DomContainer
 
         $newContentType = "text/html; charset={$newEncoding}";
 
-        if ($contentTypeMetaFound) {
+        if (isset($httpEquivAttr, $contentAttr)) {
             $contentAttr->nodeValue = $newContentType;
         } else {
-            $meta = $this->document->createElement('meta');
+            $meta = $this->getDocument()->createElement('meta');
             $meta->setAttribute('http-equiv', 'Content-Type');
             $meta->setAttribute('content', $newContentType);
-            $this->prependChild($meta, $this->document->getElementsByTagName('head')->item(0));
+            $this->prependChild($meta, $this->getHead());
         }
     }
 
@@ -131,7 +128,8 @@ class HtmlDocument extends DomContainer
             // suppress encoding handling as it is always specified the "correct" way
             $this->handleEncoding = false;
 
-            $this->loadString(<<<HTML
+            $this->loadString(
+                <<<HTML
 <!doctype html>
 <html>
     <head>
@@ -155,7 +153,7 @@ HTML
         }
     }
 
-    protected function populate(string $content, ?string $encoding = null): void
+    protected function populate(\DOMDocument $document, string $content, ?string $encoding = null): void
     {
         // handle document encoding
         if ($this->handleEncoding) {
@@ -168,7 +166,7 @@ HTML
         }
 
         // load
-        $this->document->loadHTML($content, $this->libxmlFlags);
+        $document->loadHTML($content, $this->getLibxmlFlags());
     }
 
     function save(?\DOMNode $contextNode = null, bool $childrenOnly = false): string
@@ -178,7 +176,6 @@ HTML
         if ($contextNode === null) {
             $content = $document->saveHTML();
         } else {
-
             if ($childrenOnly) {
                 $content = '';
                 foreach ($contextNode->childNodes as $node) {
@@ -232,7 +229,7 @@ HTML
      */
     static function handleEncoding(string &$htmlDocument, ?string $knownEncoding = null): void
     {
-        $document = new Parser($htmlDocument);
+        $document = new SimpleHtmlParser($htmlDocument);
 
         $encodingTag = $document->getEncodingTag();
         $specifiedEncoding = $document->getEncoding();
@@ -244,9 +241,10 @@ HTML
             || $knownEncoding !== null && strcasecmp($specifiedEncoding, $knownEncoding) !== 0 // the encodings are different
         ) {
             $replacement = "<meta http-equiv=\"Content-Type\" content=\"text/html; charset={$document->escape($usedEncoding)}\">";
-            
+            $insertAfter = null;
+
             if ($encodingTag === null) {
-                $insertAfter = $document->find(Parser::OPENING_TAG, 'head', 1024) ?: $document->getDoctypeElement();
+                $insertAfter = $document->find(SimpleHtmlParser::OPENING_TAG, 'head', 1024) ?: $document->getDoctypeElement();
             }
 
             $document = null;

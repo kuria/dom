@@ -1,6 +1,15 @@
 Changelog
 #########
 
+3.0.0
+*****
+
+- removed deprecated ``SimpleHtmlParser`` alias
+- changed most class members from protected to private
+- removed implicit empty document creation
+- cs fixes, added codestyle checks
+
+
 2.2.0
 *****
 

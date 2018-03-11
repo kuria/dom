@@ -50,10 +50,11 @@ class HtmlDocumentTest extends DomContainerTest
         $this->assertSame('head', $dom->getHead()->tagName);
     }
 
-    function testExceptionOnMissinHead()
+    function testExceptionOnMissingHead()
     {
         /** @var HtmlDocument $dom */
         $dom = $this->createContainer();
+        $dom->loadEmpty();
 
         $dom->remove($dom->getHead());
 
@@ -75,6 +76,7 @@ class HtmlDocumentTest extends DomContainerTest
     {
         /** @var HtmlDocument $dom */
         $dom = $this->createContainer();
+        $dom->loadEmpty();
 
         $dom->remove($dom->getBody());
 
@@ -83,21 +85,21 @@ class HtmlDocumentTest extends DomContainerTest
 
         $dom->getBody();
     }
-    
+
     function testSetEncodingUpdatesExistingMetaHttpEquiv()
     {
         $dom = $this->getContainer($this->getOption('custom_encoding'));
-        
+
         $httpEquivMeta= $dom->queryOne('/html/head/meta[@http-equiv="Content-Type"]');
 
         $this->assertNotNull($httpEquivMeta);
         $this->assertContains('charset=' . $this->getOption('custom_encoding'), $httpEquivMeta->attributes->getNamedItem('content')->nodeValue);
-        
+
         $dom->setEncoding(DomContainer::INTERNAL_ENCODING);
 
         $this->assertContains('charset=' . DomContainer::INTERNAL_ENCODING, $httpEquivMeta->attributes->getNamedItem('content')->nodeValue);
     }
-    
+
     function testSetEncodingCreatesNewMetaHttpEquiv()
     {
         $dom = $this->createContainer();
@@ -138,7 +140,7 @@ HTML
         $this->assertNull($dom->queryOne('/html/head/meta[@charset]'));
         $this->assertNotNull($dom->queryOne('/html/head/meta[@http-equiv="Content-Type"]'));
     }
-    
+
     /**
      * @requires extension tidy
      */
@@ -150,7 +152,7 @@ HTML
             'doctype' => 'loose',
             'drop-font-tags' => true,
         ];
-        
+
         $dom->setTidyEnabled(true);
 
         $dom->setTidyConfig($tidyConfig);
@@ -159,7 +161,7 @@ HTML
         $this->assertEquals($tidyConfig + ['foo' => 'bar'], $dom->getTidyConfig());
         $dom->setTidyConfig($tidyConfig, false);
         $this->assertSame($tidyConfig, $dom->getTidyConfig());
-        
+
         $dom->loadString(<<<HTML
 <!doctype html>
 <center>
@@ -167,7 +169,7 @@ HTML
 </center>
 HTML
         );
-       
+
         $this->assertNull($dom->queryOne('//center'));
         $this->assertNotNull($dom->queryOne('//p'));
     }

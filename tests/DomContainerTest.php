@@ -26,7 +26,7 @@ abstract class DomContainerTest extends TestCase
 
         return $this->options[$name];
     }
-    
+
     abstract protected function initializeOptions(): array;
 
     function testConfiguration()
@@ -58,14 +58,10 @@ abstract class DomContainerTest extends TestCase
 
         $this->assertFalse($dom->isLoaded());
 
-        $document = $dom->getDocument();
+        $this->expectException(\LogicException::class);
+        $this->expectExceptionMessage('The document has not beed loaded yet');
 
-        $this->assertInstanceOf('DOMDocument', $document);
-
-        $output = $dom->save();
-
-        $this->assertValidMinimalOutput($output);
-        $this->assertValidEmptyOutput($output);
+        $dom->getDocument();
     }
 
     function testLoadEmpty()
@@ -248,7 +244,7 @@ abstract class DomContainerTest extends TestCase
         $result = $dom->query($this->getOption('query'));
         $this->assertInstanceOf('DOMNodeList', $result);
         $this->assertSame($this->getOption('query.expected_results'), $result->length);
-        
+
         $result = $dom->query($this->getOption('context_query'), $this->getContextNode($dom));
         $this->assertInstanceOf('DOMNodeList', $result);
         $this->assertSame($this->getOption('context_query.expected_results'), $result->length);
@@ -387,8 +383,8 @@ abstract class DomContainerTest extends TestCase
     protected function assertValidContainer(DomContainer $dom, $expectedEncoding = DomContainer::INTERNAL_ENCODING)
     {
         $this->assertTrue($dom->isLoaded());
-        $this->assertInstanceof('DOMDocument', $dom->getDocument());
-        $this->assertInstanceof('DOMXPath', $dom->getXpath());
+        $this->assertInstanceOf('DOMDocument', $dom->getDocument());
+        $this->assertInstanceOf('DOMXPath', $dom->getXpath());
         $this->assertTrue(
             strcasecmp($actualEncoding = $dom->getEncoding(), $expectedEncoding) === 0,
             sprintf('getEncoding() should return "%s", but got "%s"', $actualEncoding, $expectedEncoding)

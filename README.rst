@@ -3,6 +3,9 @@ DOM
 
 Wrappers around the `PHP DOM classes <http://php.net/manual/en/book.dom.php>`__ that handle the common DOM extension pitfalls.
 
+.. image:: https://travis-ci.org/kuria/dom.svg?branch=master
+   :target: https://travis-ci.org/kuria/dom
+
 .. contents::
 
 

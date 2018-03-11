@@ -4,26 +4,26 @@ namespace Kuria\Dom;
 
 class HtmlFragment extends HtmlDocument
 {
-    /**
-     * Encoding handling is disabled by default, since it is always specified
-     * the "correct" way. This saves some needless processing.
-     *
-     * @var bool
-     */
-    protected $handleEncoding = false;
+
+    function __construct()
+    {
+        // encoding handling is disabled by default, since it is always specified the "correct" way
+        $this->setHandleEncoding(false);
+    }
 
     function loadEmpty(?array $properties = null): void
     {
         $this->loadString('', null, $properties);
     }
 
-    protected function populate(string $content, ?string $encoding = null): void
+    protected function populate(\DOMDocument $document, string $content, ?string $encoding = null): void
     {
         if (!$encoding) {
             $encoding = static::INTERNAL_ENCODING;
         }
 
         parent::populate(
+            $document,
             <<<HTML
 <!doctype html>
 <html>

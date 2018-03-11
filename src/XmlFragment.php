@@ -9,13 +9,14 @@ class XmlFragment extends XmlDocument
         $this->loadString('', null, $properties);
     }
 
-    protected function populate(string $content, ?string $encoding = null): void
+    protected function populate(\DOMDocument $document, string $content, ?string $encoding = null): void
     {
         if (!$encoding) {
             $encoding = static::INTERNAL_ENCODING;
         }
 
         parent::populate(
+            $document,
             <<<XML
 <?xml version="1.0" encoding="{$this->escape($encoding)}"?>
 <root>{$content}</root>

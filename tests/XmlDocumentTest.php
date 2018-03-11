@@ -43,6 +43,7 @@ class XmlDocumentTest extends DomContainerTest
     {
         /** @var XmlFragment $dom */
         $dom = $this->createContainer();
+        $dom->loadEmpty();
 
         $this->expectException(\RuntimeException::class);
         $this->expectExceptionMessage('The root element was not found');

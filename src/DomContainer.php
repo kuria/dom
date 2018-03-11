@@ -4,17 +4,17 @@ namespace Kuria\Dom;
 
 abstract class DomContainer
 {
-    /** http://php.net/manual/en/intro.dom.php */
+    /** @see http://php.net/manual/en/intro.dom.php */
     const INTERNAL_ENCODING = 'UTF-8';
 
     /** @var \DOMDocument|null */
-    protected $document;
+    private $document;
     /** @var \DOMXPath|null */
-    protected $xpath;
+    private $xpath;
     /** @var bool */
-    protected $ignoreErrors = false;
+    private $ignoreErrors = false;
     /** @var int */
-    protected $libxmlFlags = 0;
+    private $libxmlFlags = 0;
 
     /**
      * Create container from a string
@@ -102,14 +102,12 @@ abstract class DomContainer
     /**
      * Get the DOM document instance
      *
-     * If the the document hasn't been intialized yet, an empty document will be loaded.
-     *
-     * @see DomContainer::loadEmpty()
+     * @throws \LogicException if the document hasn't been loaded yet
      */
     function getDocument(): \DOMDocument
     {
         if ($this->document === null) {
-            $this->loadEmpty();
+            throw new \LogicException('The document has not beed loaded yet');
         }
 
         return $this->document;
@@ -142,19 +140,20 @@ abstract class DomContainer
     function loadString(string $content, ?string $encoding = null, ?array $documentProps = null): void
     {
         $this->clear();
-        
+
         $originalUseInternalErrors = libxml_use_internal_errors($this->ignoreErrors);
 
         try {
-            $this->document = new \DOMDocument();
+            $document = new \DOMDocument();
 
             if ($documentProps !== null) {
                 foreach ($documentProps as $property => $value) {
-                    $this->document->{$property} = $value;
+                    $document->{$property} = $value;
                 }
             }
 
-            $this->populate($content, $encoding);
+            $this->populate($document, $content, $encoding);
+            $this->document = $document;
         } catch (\Throwable $e) {
             $this->clear();
 
@@ -168,9 +167,9 @@ abstract class DomContainer
     }
 
     /**
-     * Populate the document with the given content
+     * Populate document with the given content
      */
-    abstract protected function populate(string $content, ?string $encoding = null): void;
+    abstract protected function populate(\DOMDocument $document, string $content, ?string $encoding = null): void;
 
     /**
      * Load existing DOM instances

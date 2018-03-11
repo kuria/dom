@@ -35,9 +35,9 @@ XML
         }
     }
 
-    protected function populate(string $content, ?string $encoding = null): void
+    protected function populate(\DOMDocument $document, string $content, ?string $encoding = null): void
     {
-        $this->document->loadXML($content, $this->libxmlFlags);
+        $document->loadXML($content, $this->getLibxmlFlags());
     }
 
     function save(?\DOMNode $contextNode = null, bool $childrenOnly = false): string
