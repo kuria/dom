@@ -1,7 +1,8 @@
 DOM
 ###
 
-Wrappers around the `PHP DOM classes <http://php.net/manual/en/book.dom.php>`__ that handle the common DOM extension pitfalls.
+Wrappers around the `PHP DOM classes <http://php.net/manual/en/book.dom.php>`__
+that handle the common DOM extension pitfalls.
 
 .. image:: https://travis-ci.org/kuria/dom.svg?branch=master
    :target: https://travis-ci.org/kuria/dom
@@ -164,7 +165,8 @@ Escaping strings
 DOM manipulation and traversal helpers
 ======================================
 
-Helpers for commonly needed tasks that aren't easily achieved via existing DOM methods:
+Helpers for commonly needed tasks that aren't easily achieved via existing
+DOM methods:
 
 .. code:: php
 
@@ -241,6 +243,11 @@ prior to being loaded.
    $dom->setTidyEnabled(true);
    $dom->loadString($html);
 
+.. NOTE::
+
+   HTML documents ignore errors by default, so there is no need to call
+   ``$dom->setIgnoreErrors(true)``.
+
 
 Creating an new document
 ------------------------
@@ -304,6 +311,11 @@ Output:
 ::
 
   string(5) "Hello"
+
+.. NOTE::
+
+   HTML fragments ignore errors by default, so there is no need to call
+   ``$dom->setIgnoreErrors(true)``.
 
 
 Creating a new fragment

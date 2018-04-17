@@ -4,10 +4,11 @@ namespace Kuria\Dom;
 
 class HtmlFragment extends HtmlDocument
 {
-
     function __construct()
     {
-        // encoding handling is disabled by default, since it is always specified the "correct" way
+        parent::__construct();
+
+        //disable encoding handling by default since it is always specified the "correct" way
         $this->setHandleEncoding(false);
     }
 

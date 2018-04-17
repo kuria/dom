@@ -18,6 +18,7 @@ class HtmlFragmentTest extends DomContainerTest
             'prepend_child_target_query' => '.',
             'insert_after_target_query' => '//ul[@id="foo"]',
             'remove_all_target_query' => '//ul[@id="bar"]',
+            'default_ignore_errors' => true,
         ];
     }
 

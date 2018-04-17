@@ -13,6 +13,12 @@ class HtmlDocument extends DomContainer
     /** @var bool */
     private $handleEncoding = true;
 
+    function __construct()
+    {
+        // ignore errors by default (similar to web browsers)
+        $this->setIgnoreErrors(true);
+    }
+
     function isTidyEnabled(): bool
     {
         return $this->tidyEnabled;

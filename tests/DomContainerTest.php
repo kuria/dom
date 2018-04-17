@@ -17,6 +17,7 @@ abstract class DomContainerTest extends TestCase
                 'is_fragment' => false,
                 'custom_encoding' => 'iso-8859-15',
                 'non_matching_query' => '/nonexistent',
+                'default_ignore_errors' => false,
             ];
         }
 
@@ -34,7 +35,7 @@ abstract class DomContainerTest extends TestCase
         $dom = $this->createContainer();
 
         // defaults
-        $this->assertFalse($dom->isIgnoringErrors());
+        $this->assertSame($this->getOption('default_ignore_errors'), $dom->isIgnoringErrors());
         $this->assertSame(0, $dom->getLibxmlFlags());
 
         $dom->setIgnoreErrors(true);
@@ -43,8 +44,10 @@ abstract class DomContainerTest extends TestCase
         $this->assertTrue($dom->isIgnoringErrors());
         $this->assertSame(LIBXML_NOBLANKS, $dom->getLibxmlFlags());
 
+        $dom->setIgnoreErrors(false);
         $dom->setLibxmlFlags(LIBXML_NOCDATA);
 
+        $this->assertFalse($dom->isIgnoringErrors());
         $this->assertSame(LIBXML_NOBLANKS | LIBXML_NOCDATA, $dom->getLibxmlFlags());
 
         $dom->setLibxmlFlags(LIBXML_NOBLANKS, false);
@@ -153,6 +156,7 @@ abstract class DomContainerTest extends TestCase
     function testIgnoreErrorsDisabled()
     {
         $dom = $this->createContainer();
+        $dom->setIgnoreErrors(false);
 
         $this->expectException(Warning::class);
         $this->expectExceptionMessage('DOMDocument::');

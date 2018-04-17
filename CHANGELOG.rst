@@ -1,6 +1,12 @@
 Changelog
 #########
 
+3.1.0
+*****
+
+- ``HtmlDocument`` and ``HtmlFragment`` now ignore errors by default
+
+
 3.0.0
 *****
 
