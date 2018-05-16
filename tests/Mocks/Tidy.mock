@@ -1,0 +1,7 @@
+<?php
+
+if (!extension_loaded('tidy')):
+
+function tidy_repair_string ($data, $config = null, $encoding = null) {}
+
+endif;

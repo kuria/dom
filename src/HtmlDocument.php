@@ -167,7 +167,7 @@ HTML
         }
 
         // tidy
-        if ($this->tidyEnabled && function_exists('tidy_repair_string')) {
+        if ($this->tidyEnabled && extension_loaded('tidy')) {
             $content = tidy_repair_string($content, $this->tidyConfig, 'raw');
         }
 

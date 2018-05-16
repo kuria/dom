@@ -18,6 +18,9 @@
     "autoload-dev": {
         "psr-4": {
             "Kuria\\Dom\\": "tests"
-        }
+        },
+        "files": [
+            "tests/Mocks/Tidy.mock"
+        ]
     }
 }
