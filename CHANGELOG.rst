@@ -1,6 +1,13 @@
 Changelog
 #########
 
+3.1.1
+*****
+
+- all containers now throw an exception when being serialized
+  (because the underlying PHP DOM objects are not serializable)
+
+
 3.1.0
 *****
 

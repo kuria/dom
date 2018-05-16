@@ -347,6 +347,16 @@ abstract class DomContainerTest extends TestCase
         $this->assertSame(0, $targetNode->childNodes->length);
     }
 
+    function testExceptionOnSerialization()
+    {
+        $dom = $this->getContainer();
+
+        $this->expectException(\LogicException::class);
+        $this->expectExceptionMessage('cannot be serialized');
+
+        serialize($dom);
+    }
+
     /**
      * Get already populated container
      */

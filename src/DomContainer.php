@@ -44,6 +44,14 @@ abstract class DomContainer
         return $dom;
     }
 
+    function __sleep()
+    {
+        throw new \LogicException(sprintf(
+            '%s cannot be serialized because PHP\'s DOM objects are not serializable',
+            static::class
+        ));
+    }
+
     /**
      * Clear the document and xpath instances
      */
