@@ -53,7 +53,7 @@ class XmlDocumentTest extends DomContainerTest
 
     protected function assertValidMinimalOutput(string $output, string $encoding = DomContainer::INTERNAL_ENCODING): void
     {
-        $this->assertRegExp(sprintf('~<\?xml[^>]*encoding="%s"~i', preg_quote($encoding, '~')), $output);
+        $this->assertRegExp(sprintf('{<\?xml[^>]*encoding="%s"}i', preg_quote($encoding)), $output);
     }
 
     protected function assertValidSampleOutput(string $output, string $encoding = DomContainer::INTERNAL_ENCODING): void

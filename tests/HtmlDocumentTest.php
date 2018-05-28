@@ -284,7 +284,7 @@ HTML;
         $this->assertContains('<!doctype', $output, '', true);
         $this->assertContains('<html>', $output, '', true);
         $this->assertContains('<head>', $output, '', true);
-        $this->assertRegExp(sprintf('~<meta http-equiv="Content-Type" content="text/html; charset=%s">~i', preg_quote($encoding, '~')), $output);
+        $this->assertRegExp(sprintf('{<meta http-equiv="Content-Type" content="text/html; charset=%s">}i', preg_quote($encoding)), $output);
         $this->assertContains('<body>', $output, '', true);
     }
 
