@@ -5,6 +5,8 @@
     "license": "MIT",
     "require": {
         "php": ">=7.1",
+        "ext-dom": "*",
+        "ext-libxml": "*",
         "kuria/simple-html-parser": "^2.0"
     },
     "require-dev": {
