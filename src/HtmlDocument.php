@@ -8,8 +8,10 @@ class HtmlDocument extends DomContainer
 {
     /** @var bool */
     private $tidyEnabled = false;
+
     /** @var array */
     private $tidyConfig = [];
+
     /** @var bool */
     private $handleEncoding = true;
 

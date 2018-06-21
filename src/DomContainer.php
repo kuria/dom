@@ -9,10 +9,13 @@ abstract class DomContainer
 
     /** @var \DOMDocument|null */
     private $document;
+
     /** @var \DOMXPath|null */
     private $xpath;
+
     /** @var bool */
     private $ignoreErrors = false;
+
     /** @var int */
     private $libxmlFlags = 0;
 
