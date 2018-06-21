@@ -30,7 +30,7 @@ abstract class DomContainerTest extends TestCase
 
     abstract protected function initializeOptions(): array;
 
-    function testConfiguration()
+    function testShouldConfigure()
     {
         $dom = $this->createContainer();
 
@@ -55,7 +55,7 @@ abstract class DomContainerTest extends TestCase
         $this->assertSame(LIBXML_NOBLANKS, $dom->getLibxmlFlags());
     }
 
-    function testAutomaticLoadEmptyOnUninitializedDocument()
+    function testShouldThrowExceptionIfDocumentHasNotBeenLoaded()
     {
         $dom = $this->createContainer();
 
@@ -67,7 +67,7 @@ abstract class DomContainerTest extends TestCase
         $dom->getDocument();
     }
 
-    function testLoadEmpty()
+    function testShouldLoadEmpty()
     {
         $dom = $this->createContainer();
 
@@ -80,7 +80,7 @@ abstract class DomContainerTest extends TestCase
         $this->assertValidEmptyOutput($output);
     }
 
-    function testLoadString()
+    function testShouldLoadString()
     {
         $dom = $this->createContainer();
         $dom->loadString($this->getSampleContent());
@@ -88,7 +88,7 @@ abstract class DomContainerTest extends TestCase
         $this->assertValidEncodedTestString($dom);
     }
 
-    function testLoadStringProperties()
+    function testShouldLoadStringWithProperties()
     {
         $defaultDom = new \DOMDocument();
         $this->assertFalse($defaultDom->resolveExternals);
@@ -104,7 +104,7 @@ abstract class DomContainerTest extends TestCase
         $this->assertTrue($dom->getDocument()->recover);
     }
 
-    function testLoadStringNonUtf8()
+    function testShouldLoadNonUtf8String()
     {
         $encoding = $this->getOption('custom_encoding');
 
@@ -117,14 +117,14 @@ abstract class DomContainerTest extends TestCase
         $this->assertValidEncodedTestString($dom);
     }
 
-    function testFromString()
+    function testShouldCreateFromString()
     {
         $dom = $this->createContainer()::fromString($this->getSampleContent());
         $this->assertValidContainer($dom);
         $this->assertValidEncodedTestString($dom);
     }
 
-    function testLoadDocument()
+    function testShouldLoadDocument()
     {
         $anotherDom = $this->getContainer();
         $document = $anotherDom->getDocument();
@@ -139,7 +139,7 @@ abstract class DomContainerTest extends TestCase
         $this->assertValidEncodedTestString($dom);
     }
 
-    function testFromDocument()
+    function testShouldCreateFromDocument()
     {
         $anotherDom = $this->getContainer();
         $document = $anotherDom->getDocument();
@@ -153,7 +153,7 @@ abstract class DomContainerTest extends TestCase
         $this->assertValidEncodedTestString($dom);
     }
 
-    function testIgnoreErrorsDisabled()
+    function testShouldThrowExceptionOnInvalidContent()
     {
         $dom = $this->createContainer();
         $dom->setIgnoreErrors(false);
@@ -164,7 +164,7 @@ abstract class DomContainerTest extends TestCase
         $dom->loadString($this->getInvalidSampleContent());
     }
 
-    function testIgnoreErrorsEnabled()
+    function testShouldIgnoreErrorsifEnabled()
     {
         $dom = $this->createContainer();
         $dom->setIgnoreErrors(true);
@@ -173,9 +173,9 @@ abstract class DomContainerTest extends TestCase
         $this->assertTrue($dom->isLoaded());
     }
 
-    abstract function testEscape();
+    abstract function testShouldEscape();
 
-    function testClear()
+    function testShouldClear()
     {
         $dom = $this->getContainer();
 
@@ -184,7 +184,7 @@ abstract class DomContainerTest extends TestCase
         $this->assertFalse($dom->isLoaded());
     }
 
-    function testSave()
+    function testShouldSave()
     {
         $dom = $this->getContainer();
         $context = $this->getContextNode($dom);
@@ -197,7 +197,7 @@ abstract class DomContainerTest extends TestCase
         $this->assertValidOutputWithContextNodeChildrenOnly($dom->save($context, true));
     }
 
-    function testEncoding()
+    function testShouldUseCustomEncoding()
     {
         $dom = $this->getContainer($this->getOption('custom_encoding'));
         $output = $dom->save();
@@ -241,7 +241,7 @@ abstract class DomContainerTest extends TestCase
      */
     abstract protected function assertValidOutputWithContextNodeChildrenOnly(string $output, string $encoding = DomContainer::INTERNAL_ENCODING);
 
-    function testQuery()
+    function testShouldQuery()
     {
         $dom = $this->getContainer();
 
@@ -254,7 +254,7 @@ abstract class DomContainerTest extends TestCase
         $this->assertSame($this->getOption('context_query.expected_results'), $result->length);
     }
 
-    function testQueryOne()
+    function testShouldQueryOne()
     {
         $dom = $this->getContainer();
 
@@ -265,7 +265,7 @@ abstract class DomContainerTest extends TestCase
         $this->assertInstanceOf('DOMNode', $result);
     }
 
-    function testExceptionOnInvalidQuery()
+    function testShouldThrowExceptionOnInvalidQuery()
     {
         $this->expectException(\RuntimeException::class);
         $this->expectExceptionMessage('Error while evaluating XPath query');
@@ -273,7 +273,7 @@ abstract class DomContainerTest extends TestCase
         $this->getContainer()->query('invalid ^ 123 456 query / - ... blah blah O_o');
     }
 
-    function testExists()
+    function testShouldCheckIfQueryMatches()
     {
         $dom = $this->getContainer();
 
@@ -283,7 +283,7 @@ abstract class DomContainerTest extends TestCase
         $this->assertFalse($dom->exists($this->getOption('non_matching_query'), $this->getContextNode($dom)));
     }
 
-    function testContainsAndRemove()
+    function testShouldCheckAndRemove()
     {
         $dom = $this->getContainer();
         $nodeToRemove = $dom->queryOne($this->getOption('remove_query'));
@@ -295,7 +295,7 @@ abstract class DomContainerTest extends TestCase
         $this->assertFalse($dom->contains($nodeToRemove));
     }
 
-    function testExceptionOnRemovingRootNode()
+    function testShouldThrowExceptionWhenRemovingRootNode()
     {
         $dom = $this->getContainer();
 
@@ -305,7 +305,7 @@ abstract class DomContainerTest extends TestCase
         $dom->remove($dom->getDocument());
     }
 
-    function testPrependChild()
+    function testShouldPrependChild()
     {
         $dom = $this->getContainer();
         $newNode = new \DOMElement('test');
@@ -321,7 +321,7 @@ abstract class DomContainerTest extends TestCase
         $this->assertSame($newNode, $existingNode->lastChild);
     }
 
-    function testInsertAfter()
+    function testShouldInsertAfter()
     {
         $dom = $this->getContainer();
         $newNode = new \DOMElement('test');
@@ -334,7 +334,7 @@ abstract class DomContainerTest extends TestCase
         $this->assertSame($newNode, $existingNode->nextSibling);
     }
 
-    function testRemoveAll()
+    function testShouldRemoveAll()
     {
         $dom = $this->getContainer();
 
@@ -347,7 +347,7 @@ abstract class DomContainerTest extends TestCase
         $this->assertSame(0, $targetNode->childNodes->length);
     }
 
-    function testExceptionOnSerialization()
+    function testShouldThrowExceptionOnSerialization()
     {
         $dom = $this->getContainer();
 

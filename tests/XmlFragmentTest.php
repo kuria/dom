@@ -21,7 +21,7 @@ class XmlFragmentTest extends DomContainerTest
         ];
     }
 
-    function testEscape()
+    function testShouldEscape()
     {
         $dom = $this->createContainer();
 
@@ -31,7 +31,7 @@ class XmlFragmentTest extends DomContainerTest
         );
     }
 
-    function testGetRoot()
+    function testShouldGetRoot()
     {
         /** @var XmlFragment $dom */
         $dom = $this->getContainer();

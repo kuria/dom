@@ -21,9 +21,9 @@ class HtmlDocumentTest extends DomContainerTest
         ];
     }
 
-    function testConfiguration()
+    function testShouldConfigure()
     {
-        parent::testConfiguration();
+        parent::testShouldConfigure();
 
         $dom = $this->createContainer();
 
@@ -32,7 +32,7 @@ class HtmlDocumentTest extends DomContainerTest
         $this->assertEmpty($dom->getTidyConfig());
     }
 
-    function testEscape()
+    function testShouldEscape()
     {
         $dom = $this->createContainer();
 
@@ -42,7 +42,7 @@ class HtmlDocumentTest extends DomContainerTest
         );
     }
 
-    function testGetHead()
+    function testShouldGetHead()
     {
         /** @var HtmlDocument $dom */
         $dom = $this->getContainer();
@@ -51,7 +51,7 @@ class HtmlDocumentTest extends DomContainerTest
         $this->assertSame('head', $dom->getHead()->tagName);
     }
 
-    function testExceptionOnMissingHead()
+    function testShouldThrowExceptionIfHeadIsMissing()
     {
         /** @var HtmlDocument $dom */
         $dom = $this->createContainer();
@@ -64,7 +64,7 @@ class HtmlDocumentTest extends DomContainerTest
         $dom->getHead();
     }
 
-    function testGetBody()
+    function testShouldGetBody()
     {
         /** @var HtmlDocument $dom */
         $dom = $this->getContainer();
@@ -73,7 +73,7 @@ class HtmlDocumentTest extends DomContainerTest
         $this->assertSame('body', $dom->getBody()->tagName);
     }
 
-    function testExceptionOnMissingBody()
+    function testShouldThrowExceptionIfBodyIsMissing()
     {
         /** @var HtmlDocument $dom */
         $dom = $this->createContainer();
@@ -87,7 +87,7 @@ class HtmlDocumentTest extends DomContainerTest
         $dom->getBody();
     }
 
-    function testSetEncodingUpdatesExistingMetaHttpEquiv()
+    function testSetEncodingShouldUpdateExistingMetaHttpEquiv()
     {
         $dom = $this->getContainer($this->getOption('custom_encoding'));
 
@@ -101,7 +101,7 @@ class HtmlDocumentTest extends DomContainerTest
         $this->assertContains('charset=' . DomContainer::INTERNAL_ENCODING, $httpEquivMeta->attributes->getNamedItem('content')->nodeValue);
     }
 
-    function testSetEncodingCreatesNewMetaHttpEquiv()
+    function testSetEncodingShouldCreatesewMetaHttpEquiv()
     {
         $dom = $this->createContainer();
         $dom->setHandleEncoding(false);
@@ -121,7 +121,7 @@ HTML
         $this->assertContains('charset=' . DomContainer::INTERNAL_ENCODING, $httpEquivMeta->attributes->getNamedItem('content')->nodeValue);
     }
 
-    function testSetEncodingRemovesMetaCharset()
+    function testSetEncodingShouldRemoveMetaCharset()
     {
         $dom = $this->createContainer();
         $dom->setHandleEncoding(false);
@@ -145,7 +145,7 @@ HTML
     /**
      * @requires extension tidy
      */
-    function testTidy()
+    function testShouldTidy()
     {
         $dom = $this->createContainer();
 
@@ -175,7 +175,7 @@ HTML
         $this->assertNotNull($dom->queryOne('//p'));
     }
 
-    function testDisabledHandleEncoding()
+    function testShouldNotHandleEncodingIfDisabled()
     {
         $dom = $this->createContainer();
 
@@ -190,7 +190,7 @@ HTML
         $this->assertNull($dom->queryOne('//meta'));
     }
 
-    function testHandleEncodingKeepsValidMetaHttpEquiv()
+    function testHandleEncodingShouldKeepValidMetaHttpEquiv()
     {
         $html = <<<HTML
 <!doctype html>
@@ -202,7 +202,7 @@ HTML;
         $this->assertContains('<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-15">', $html, '', true);
     }
 
-    function testHandleEncodingReplacesMetaHttpEquivIfDifferentKnownEncoding()
+    function testHandleEncodingShouldReplaceMetaHttpEquivIfKnownEncodingIsDifferent()
     {
         $html = <<<HTML
 <!doctype html>
@@ -214,7 +214,7 @@ HTML;
         $this->assertContains('<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">', $html, '', true);
     }
 
-    function testHandleEncodingConvertsMetaCharsetToHttpEquiv()
+    function testHandleEncodingShouldConvertMetaCharsetToHttpEquiv()
     {
         $html = <<<HTML
 <!doctype html>
@@ -227,7 +227,7 @@ HTML;
         $this->assertNotContains('<meta charset=', $html, '', true);
     }
 
-    function testHandleEncodingCreatesMetaHttpEquivInHead()
+    function testHandleEncodingShouldCreateMetaHttpEquivInHead()
     {
         $html = <<<HTML
 <!doctype html>
@@ -246,7 +246,7 @@ HTML;
         $this->assertGreaterThan($headPosition, $metaHttpEquivPosition);
     }
 
-    function testHandleEncodingCreatesMetaHttpEquivAfterDoctype()
+    function testShouldHandleEncodingShouldCreateMetaHttpEquivAfterDoctype()
     {
         $html = <<<HTML
 <!doctype html>
@@ -263,7 +263,7 @@ HTML;
         $this->assertGreaterThan($doctypePosition, $metaHttpEquivPosition);
     }
 
-    function testHandleEncodingCreatesMetaHttpEquivAtStart()
+    function testHandleEncodingShouldCreateMetaHttpEquivAtStart()
     {
         $html = <<<HTML
 <title>Hello</title>

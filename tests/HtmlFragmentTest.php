@@ -22,7 +22,7 @@ class HtmlFragmentTest extends DomContainerTest
         ];
     }
 
-    function testEscape()
+    function testShouldEscape()
     {
         $dom = $this->createContainer();
 
@@ -32,7 +32,7 @@ class HtmlFragmentTest extends DomContainerTest
         );
     }
 
-    function testGetHead()
+    function testShouldGetHead()
     {
         /** @var HtmlFragment $dom */
         $dom = $this->getContainer();
@@ -41,7 +41,7 @@ class HtmlFragmentTest extends DomContainerTest
         $this->assertSame('head', $dom->getHead()->tagName);
     }
 
-    function testGetBody()
+    function testShouldGetBody()
     {
         /** @var HtmlFragment $dom */
         $dom = $this->getContainer();

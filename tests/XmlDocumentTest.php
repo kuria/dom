@@ -20,7 +20,7 @@ class XmlDocumentTest extends DomContainerTest
         ];
     }
 
-    function testEscape()
+    function testShouldEscape()
     {
         $dom = $this->createContainer();
 
@@ -30,7 +30,7 @@ class XmlDocumentTest extends DomContainerTest
         );
     }
 
-    function testGetRoot()
+    function testShouldGetRoot()
     {
         /** @var XmlFragment $dom */
         $dom = $this->getContainer();
@@ -39,7 +39,7 @@ class XmlDocumentTest extends DomContainerTest
         $this->assertSame('list', $dom->getRoot()->tagName);
     }
 
-    function testExceptionOnMissingRoot()
+    function testShouldThrowExceptionOnMissingRoot()
     {
         /** @var XmlFragment $dom */
         $dom = $this->createContainer();
