@@ -151,10 +151,12 @@ HTML
                 null,
                 $properties
             );
-        } catch (\Throwable $e) {
+        } catch (\Throwable $e) { // @codeCoverageIgnoreStart
+            // should not happen unless the above HTML is broken for some reason
             $this->clear();
 
             throw $e;
+            // @codeCoverageIgnoreEnd
         } finally {
             // restore prior handleEncoding value
             $this->handleEncoding = $handleEncoding;

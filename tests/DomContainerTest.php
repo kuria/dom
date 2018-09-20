@@ -2,10 +2,10 @@
 
 namespace Kuria\Dom;
 
+use Kuria\DevMeta\Test;
 use PHPUnit\Framework\Error\Warning;
-use PHPUnit\Framework\TestCase;
 
-abstract class DomContainerTest extends TestCase
+abstract class DomContainerTest extends Test
 {
     /** @var array|null */
     private $options;
@@ -161,7 +161,13 @@ abstract class DomContainerTest extends TestCase
         $this->expectException(Warning::class);
         $this->expectExceptionMessage('DOMDocument::');
 
-        $dom->loadString($this->getInvalidSampleContent());
+        try {
+            $dom->loadString($this->getInvalidSampleContent());
+        } catch (\Throwable $e) {
+            $this->assertFalse($dom->isLoaded(), 'exception during loadString() should discard the document');
+
+            throw $e;
+        }
     }
 
     function testShouldIgnoreErrorsifEnabled()

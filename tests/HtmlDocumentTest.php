@@ -151,7 +151,7 @@ HTML
 
         $tidyConfig = [
             'doctype' => 'loose',
-            'drop-font-tags' => true,
+            'clean' => true,
         ];
 
         $dom->setTidyEnabled(true);
@@ -159,7 +159,7 @@ HTML
         $dom->setTidyConfig($tidyConfig);
         $this->assertSame($tidyConfig, $dom->getTidyConfig());
         $dom->setTidyConfig(['foo' => 'bar']);
-        $this->assertEquals($tidyConfig + ['foo' => 'bar'], $dom->getTidyConfig());
+        $this->assertSame(['foo' => 'bar'] + $tidyConfig, $dom->getTidyConfig());
         $dom->setTidyConfig($tidyConfig, false);
         $this->assertSame($tidyConfig, $dom->getTidyConfig());
 

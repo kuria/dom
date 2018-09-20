@@ -28,10 +28,12 @@ XML
 
             // remove the dummy root node
             $this->removeAll($this->getDocument()->childNodes);
-        } catch (\Throwable $e) {
+        } catch (\Throwable $e) { // @codeCoverageIgnoreStart
+            // should not happen unless the above XML is broken for some reason
             $this->clear();
 
             throw $e;
+            // @codeCoverageIgnoreEnd
         }
     }
 
